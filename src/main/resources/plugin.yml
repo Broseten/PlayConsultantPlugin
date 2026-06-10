@@ -10,3 +10,5 @@ authors: [ Vojtech Bruza ]
 commands:
   megaphone:
     description: Gives the player a megaphone.
+
+depend: [DecentHolograms]

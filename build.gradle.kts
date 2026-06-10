@@ -6,10 +6,14 @@ plugins {
 repositories {
     mavenCentral()
     maven("https://repo.papermc.io/repository/maven-public/")
+    // Required repository for DecentHolograms
+    maven { url = uri("https://jitpack.io") }
 }
 
 dependencies {
     compileOnly(libs.paper.api)
+    // Use compileOnly as DecentHolograms is provided by the server environment
+    compileOnly("com.github.decentsoftware-eu:decentholograms:2.9.9")
 }
 
 java {

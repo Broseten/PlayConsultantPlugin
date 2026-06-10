@@ -3,17 +3,17 @@ package eu.bruza.vojtech.playConsultantPlugin;
 import org.bukkit.NamespacedKey;
 import org.bukkit.plugin.java.JavaPlugin;
 
-import java.util.HashSet;
+import java.util.Map;
 import java.util.Objects;
-import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 public final class PlayConsultantPlugin extends JavaPlugin {
     // Safely identifies our custom item
     public NamespacedKey megaphoneKey;
 
-    // Tracks who clicked the megaphone and is currently typing
-    public final Set<UUID> typingPlayers = new HashSet<>();
+    // Accessed from both sync interaction and async chat events.
+    public final Map<UUID, PlayerData> activePlayers = new ConcurrentHashMap<>();
 
     @Override
     public void onEnable() {
@@ -34,5 +34,27 @@ public final class PlayConsultantPlugin extends JavaPlugin {
     @Override
     public void onDisable() {
         // Plugin shutdown logic
+    }
+
+    public void startTyping(UUID playerId) {
+        activePlayers.computeIfAbsent(playerId, k -> new PlayerData()).setTypingComment(true);
+    }
+
+    public boolean isTyping(UUID playerId) {
+        PlayerData data = activePlayers.get(playerId);
+        return data != null && data.isTypingComment();
+    }
+
+    public void stopTyping(UUID playerId) {
+        PlayerData data = activePlayers.get(playerId);
+        if (data != null) {
+            data.setTypingComment(false);
+        }
+    }
+
+    public int incrementAndGetComments(UUID playerId) {
+        PlayerData data = activePlayers.computeIfAbsent(playerId, k -> new PlayerData());
+        data.incrementComments();
+        return data.getCommentsMade();
     }
 }
