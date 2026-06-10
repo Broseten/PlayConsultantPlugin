@@ -1,0 +1,8 @@
+name: PlayConsultantPlugin
+version: '${version}'
+
+main: eu.bruza.vojtech.playConsultantPlugin.PlayConsultantPlugin
+api-version: '1.21.4'
+load: POSTWORLD
+
+authors: [ Vojtech Bruza ]
