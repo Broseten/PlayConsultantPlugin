@@ -6,30 +6,39 @@ public class PlayerData {
     private int commentsMade = 0;
     private Location lastCommentLocation = null;
     private boolean isTypingComment = false;
+    private boolean receivedCreativeKey = false;
 
     // Getters and Setters
-    public int getCommentsMade() {
+    public synchronized int getCommentsMade() {
         return commentsMade;
     }
 
-    public void incrementComments() {
+    public synchronized void incrementComments() {
         this.commentsMade++;
     }
 
-    public Location getLastCommentLocation() {
-        return lastCommentLocation;
+    public synchronized Location getLastCommentLocation() {
+        return lastCommentLocation == null ? null : lastCommentLocation.clone();
     }
 
-    public void setLastCommentLocation(Location loc) {
-        this.lastCommentLocation = loc;
+    public synchronized void setLastCommentLocation(Location loc) {
+        this.lastCommentLocation = loc == null ? null : loc.clone();
     }
 
-    public boolean isTypingComment() {
+    public synchronized boolean isTypingComment() {
         return isTypingComment;
     }
 
-    public void setTypingComment(boolean typing) {
+    public synchronized void setTypingComment(boolean typing) {
         this.isTypingComment = typing;
+    }
+
+    public synchronized boolean hasReceivedCreativeKey() {
+        return receivedCreativeKey;
+    }
+
+    public synchronized void setReceivedCreativeKey(boolean receivedCreativeKey) {
+        this.receivedCreativeKey = receivedCreativeKey;
     }
 }
 

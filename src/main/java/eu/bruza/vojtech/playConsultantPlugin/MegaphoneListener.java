@@ -36,7 +36,7 @@ public class MegaphoneListener implements Listener {
         ItemStack item = event.getItem();
 
         if (item == null || !item.hasItemMeta()) return;
-        if (!item.getItemMeta().getPersistentDataContainer().has(plugin.megaphoneKey)) return;
+        if (!plugin.getItemManager().isMegaphone(item)) return;
 
         event.setCancelled(true); // Stop default carrot-on-a-stick usage/interaction
 
@@ -44,7 +44,7 @@ public class MegaphoneListener implements Listener {
         if (action != Action.RIGHT_CLICK_AIR && action != Action.RIGHT_CLICK_BLOCK) return;
 
         UUID playerId = player.getUniqueId();
-        PlayerData data = plugin.activePlayers.computeIfAbsent(playerId, k -> new PlayerData());
+        PlayerData data = plugin.getOrCreatePlayerData(playerId);
 
         if (data.isTypingComment()) {
             player.sendMessage(Component.text("You are already typing a comment!", NamedTextColor.RED));
@@ -60,7 +60,7 @@ public class MegaphoneListener implements Listener {
             return;
         }
 
-        data.setTypingComment(true);
+        plugin.startTyping(playerId);
         player.sendMessage(Component.text("Type your comment in the chat (at least " + MIN_WORD_COUNT + " words):", NamedTextColor.GREEN));
     }
 
@@ -119,20 +119,23 @@ public class MegaphoneListener implements Listener {
                 ));
             }
 
-            plugin.stopTyping(playerId);
             int commentsMade = plugin.incrementAndGetComments(playerId);
+            plugin.stopTyping(playerId);
 
             // Store the last comment location
-            PlayerData playerData = plugin.activePlayers.get(playerId);
+            PlayerData playerData = plugin.getPlayerData(playerId);
             if (playerData != null) {
                 playerData.setLastCommentLocation(marker.getLocation());
             }
 
             player.sendMessage(Component.text("Comment saved! Total comments: " + commentsMade, NamedTextColor.GREEN));
 
-            if (commentsMade == CREATIVE_UNLOCK_COMMENT_COUNT) {
+            if (commentsMade >= CREATIVE_UNLOCK_COMMENT_COUNT && plugin.markCreativeKeyGranted(playerId)) {
+                if (!plugin.getItemManager().hasCreativeKey(player)) {
+                    plugin.getItemManager().giveCreativeKey(player);
+                }
                 player.sendMessage(Component.text(
-                        "You've unlocked the Creative World! Right-click your new key to travel.",
+                        "You've unlocked the Build World! Right-click your enchanted key to travel.",
                         NamedTextColor.GOLD
                 ));
             }
