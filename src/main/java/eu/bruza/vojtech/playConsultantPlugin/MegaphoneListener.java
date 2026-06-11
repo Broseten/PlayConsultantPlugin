@@ -94,6 +94,8 @@ public class MegaphoneListener implements Listener {
 
         // Continue on the main thread for world/entity/hologram operations.
         plugin.getServer().getScheduler().runTask(plugin, () -> {
+            plugin.logComment(playerId, player.getName(), message);
+
             Entity marker = player.getWorld().spawnEntity(player.getLocation().add(0, 0.5, 0), EntityType.ALLAY);
             if (marker instanceof Allay allay) {
                 allay.setAI(false);

@@ -12,6 +12,7 @@ public final class PlayConsultantPlugin extends JavaPlugin {
 
     private ItemManager itemManager;
     private WorldTravelManager worldTravelManager;
+    private CommentCsvLogger commentCsvLogger;
 
     @Override
     public void onEnable() {
@@ -20,6 +21,7 @@ public final class PlayConsultantPlugin extends JavaPlugin {
         this.itemManager = new ItemManager(this);
         this.worldTravelManager = new WorldTravelManager();
         this.worldTravelManager.ensureBuildWorldLoaded();
+        this.commentCsvLogger = new CommentCsvLogger(getDataFolder().toPath().resolve("comments.csv"), getLogger());
 
         // Register Command
         Objects.requireNonNull(getCommand("megaphone")).setExecutor(new MegaphoneCommand(this));
@@ -33,7 +35,9 @@ public final class PlayConsultantPlugin extends JavaPlugin {
 
     @Override
     public void onDisable() {
-        // Plugin shutdown logic
+        if (commentCsvLogger != null) {
+            commentCsvLogger.close();
+        }
     }
 
     public ItemManager getItemManager() {
@@ -82,5 +86,12 @@ public final class PlayConsultantPlugin extends JavaPlugin {
 
         data.setReceivedCreativeKey(true);
         return true;
+    }
+
+    public void logComment(UUID playerId, String playerName, String comment) {
+        CommentCsvLogger logger = this.commentCsvLogger;
+        if (logger != null) {
+            logger.logComment(playerId, playerName, comment);
+        }
     }
 }
