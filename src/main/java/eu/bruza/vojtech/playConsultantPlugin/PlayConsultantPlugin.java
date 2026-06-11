@@ -1,7 +1,9 @@
 package eu.bruza.vojtech.playConsultantPlugin;
 
 import org.bukkit.Location;
+import org.bukkit.NamespacedKey;
 import org.bukkit.plugin.java.JavaPlugin;
+import eu.bruza.vojtech.playConsultantPlugin.RemoveCommentCommand;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -16,6 +18,9 @@ public final class PlayConsultantPlugin extends JavaPlugin {
     private ItemManager itemManager;
     private WorldTravelManager worldTravelManager;
     private CommentCsvLogger commentCsvLogger;
+    // Keys used to tag comment marker entities and store their hologram name
+    private NamespacedKey commentMarkerKey;
+    private NamespacedKey hologramNameKey;
 
     @Override
     public void onEnable() {
@@ -30,6 +35,7 @@ public final class PlayConsultantPlugin extends JavaPlugin {
 
         // Register Command
         Objects.requireNonNull(getCommand("megaphone")).setExecutor(new MegaphoneCommand(this));
+        Objects.requireNonNull(getCommand("removecomment")).setExecutor(new RemoveCommentCommand(this));
 
         // Register Listeners
         getServer().getPluginManager().registerEvents(new MegaphoneListener(this), this);
@@ -98,5 +104,16 @@ public final class PlayConsultantPlugin extends JavaPlugin {
         if (logger != null) {
             logger.logComment(playerId, playerName, comment, loc);
         }
+    }
+
+    // NamespacedKey accessors for tagging entities/holograms
+    public NamespacedKey getCommentMarkerKey() {
+        if (commentMarkerKey == null) commentMarkerKey = new NamespacedKey(this, "is_comment_marker");
+        return commentMarkerKey;
+    }
+
+    public NamespacedKey getHologramNameKey() {
+        if (hologramNameKey == null) hologramNameKey = new NamespacedKey(this, "comment_hologram_name");
+        return hologramNameKey;
     }
 }

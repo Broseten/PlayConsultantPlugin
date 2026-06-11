@@ -10,5 +10,12 @@ authors: [ Vojtech Bruza ]
 commands:
   megaphone:
     description: Gives the player a megaphone.
+  removecomment:
+    description: Removes the nearest comment marker and its hologram (admin only).
 
 depend: [DecentHolograms]
+
+permissions:
+  playconsultant.removecomment:
+    description: Allows removing nearby comments
+    default: op

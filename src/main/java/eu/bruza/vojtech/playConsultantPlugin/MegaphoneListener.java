@@ -1,7 +1,7 @@
 package eu.bruza.vojtech.playConsultantPlugin;
 
 import eu.decentsoftware.holograms.api.DHAPI;
-import eu.decentsoftware.holograms.api.holograms.Hologram;
+// ...existing code...
 import io.papermc.paper.event.player.AsyncChatEvent;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
@@ -11,20 +11,20 @@ import org.bukkit.entity.Allay;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
+import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
 
-import java.lang.reflect.Method;
 import java.util.List;
 import java.util.UUID;
 
 public class MegaphoneListener implements Listener {
-    private static final int MIN_WORD_COUNT = 1;
+    private static final int MIN_WORD_COUNT = 2;
     private static final int CREATIVE_UNLOCK_COMMENT_COUNT = 2;
-    private static final double MIN_COMMENT_DISTANCE = 3.0;
+    private static final double MIN_COMMENT_DISTANCE = 5.0;
 
     private final PlayConsultantPlugin plugin;
 
@@ -110,6 +110,21 @@ public class MegaphoneListener implements Listener {
             marker.setPersistent(true);
 
             String hologramName = "comment_" + playerId + "_" + System.currentTimeMillis();
+            // Tag the entity with a marker key and store hologram name so admins can remove it later
+            try {
+                marker.getPersistentDataContainer().set(
+                        plugin.getCommentMarkerKey(),
+                        PersistentDataType.BYTE,
+                        (byte) 1
+                );
+                marker.getPersistentDataContainer().set(
+                        plugin.getHologramNameKey(),
+                        PersistentDataType.STRING,
+                        hologramName
+                );
+            } catch (Exception ignored) {
+                // If PDC fails for any reason, continue silently (hologram still created)
+            }
             boolean hologramCreated = createHologram(
                     hologramName,
                     marker.getLocation().clone().add(0, 1.5, 0),
@@ -152,7 +167,7 @@ public class MegaphoneListener implements Listener {
     private boolean createHologram(String name, Location location, List<String> lines) {
         try {
             // Use directly the dependency on DecentHolograms instead of using reflection
-            Hologram hologram = DHAPI.createHologram(name, location, true, lines);
+            DHAPI.createHologram(name, location, true, lines);
             return true;
         } catch (Exception e) {
             plugin.getLogger().warning("Failed to create hologram: " + e.getMessage());
