@@ -6,7 +6,10 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import org.bukkit.Location;
+import org.bukkit.entity.Allay;
 import org.bukkit.entity.Entity;
+import org.bukkit.entity.Mob;
+import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventPriority;
 import org.bukkit.persistence.PersistentDataType;
@@ -14,7 +17,10 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.event.player.PlayerInteractEntityEvent;
+import org.bukkit.event.player.PlayerInteractAtEntityEvent;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.scheduler.BukkitRunnable;
 
 import java.util.List;
 import java.util.UUID;
@@ -61,6 +67,25 @@ public class MegaphoneListener implements Listener {
                 "Type your comment in the chat (at least " + plugin.getConfigManager().getMinWordCount() + " words):",
                 NamedTextColor.GREEN
         ));
+    }
+
+    @EventHandler(ignoreCancelled = true)
+    public void onInteractEntity(PlayerInteractEntityEvent event) {
+        if (!event.getRightClicked().getPersistentDataContainer().has(plugin.getCommentMarkerKey(), PersistentDataType.BYTE)) {
+            return;
+        }
+
+        // Prevent taking items from allays, milking cows, mounting horses, etc.
+        event.setCancelled(true);
+    }
+
+    @EventHandler(ignoreCancelled = true)
+    public void onInteractAtEntity(PlayerInteractAtEntityEvent event) {
+        if (!event.getRightClicked().getPersistentDataContainer().has(plugin.getCommentMarkerKey(), PersistentDataType.BYTE)) {
+            return;
+        }
+
+        event.setCancelled(true);
     }
 
     @EventHandler(priority = EventPriority.HIGHEST)
@@ -112,12 +137,50 @@ public class MegaphoneListener implements Listener {
 
             // disable AI for mobs that support it (most mob types implement org.bukkit.entity.Mob)
             try {
-                if (marker instanceof org.bukkit.entity.Mob mobEntity) {
+                if (marker instanceof Mob mobEntity) {
                     mobEntity.setAI(false);
                 }
             } catch (NoClassDefFoundError | Exception ex) {
                 // ignore if API differences exist
             }
+
+            if (marker instanceof Allay allay) {
+                try {
+                    allay.setCanPickupItems(false);
+                } catch (NoSuchMethodError | UnsupportedOperationException ignored) {
+                }
+            }
+
+//            if (marker instanceof LivingEntity livingEntity) {
+//                // periodically look at players
+//                new BukkitRunnable() {
+//                    @Override
+//                    public void run() {
+//                        if (!livingEntity.isValid() || livingEntity.isDead()) {
+//                            cancel();
+//                            return;
+//                        }
+//
+//                        Player nearest = null;
+//                        double nearestDistance = 12.0 * 12.0;
+//                        for (Player nearby : livingEntity.getWorld().getPlayers()) {
+//                            double distance = nearby.getLocation().distanceSquared(livingEntity.getLocation());
+//                            if (distance <= nearestDistance) {
+//                                nearestDistance = distance;
+//                                nearest = nearby;
+//                            }
+//                        }
+//
+//                        if (nearest != null) {
+//                            Location lookLocation = livingEntity.getLocation().clone();
+//                            lookLocation.setDirection(
+//                                    nearest.getEyeLocation().toVector().subtract(livingEntity.getEyeLocation().toVector())
+//                            );
+//                            livingEntity.teleport(lookLocation);
+//                        }
+//                    }
+//                }.runTaskTimer(plugin, 0L, 10L);
+//            }
 
             // Make silent if possible
             try {

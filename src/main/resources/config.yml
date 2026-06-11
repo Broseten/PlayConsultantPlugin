@@ -8,58 +8,114 @@ comments:
   # How many valid comments are needed before the creative key is granted.
   creative-unlock-comment-count: 5
 
-  # List of mobs that can spawn when a comment is created. Each entry
-  # has a 'mob' name (EntityType), a numeric 'weight' (higher = more likely),
-  # and an optional 'y-offset' to tweak spawn height. 'gravity' controls whether
-  # the entity has gravity enabled (true = will fall/stand on ground).
-  # Players can edit these values to change spawn probabilities and heights.
+  # List of mobs that can spawn when a comment is created.
+  # Weight is the spawn probability weight (higher = more common).
+  # Keep ALLAY as the default/common mob; rarer mobs have much lower weights.
+  # y-offset adjusts the spawn height for the mob.
+  # gravity controls whether the entity falls / stands on the ground.
   mobs:
     - mob: ALLAY
-      weight: 8
+      weight: 20
       y-offset: 0.5
       gravity: false
+
+    # Common passive mobs
     - mob: SHEEP
-      weight: 6
+      weight: 10
       y-offset: 0.0
       gravity: true
     - mob: CHICKEN
-      weight: 5
+      weight: 9
       y-offset: 0.0
       gravity: true
     - mob: COW
-      weight: 5
+      weight: 9
       y-offset: 0.0
       gravity: true
     - mob: PIG
-      weight: 4
+      weight: 8
       y-offset: 0.0
       gravity: true
     - mob: RABBIT
-      weight: 4
+      weight: 8
+      y-offset: 0.0
+      gravity: true
+
+    # Uncommon mobs
+    - mob: CAT
+      weight: 7
+      y-offset: 0.0
+      gravity: true
+    - mob: FOX
+      weight: 6
       y-offset: 0.0
       gravity: true
     - mob: BEE
-      weight: 3
+      weight: 6
       y-offset: 0.5
-      gravity: false
+      gravity: true
+    - mob: HORSE
+      weight: 5
+      y-offset: 0.0
+      gravity: true
+    - mob: DONKEY
+      weight: 5
+      y-offset: 0.0
+      gravity: true
+    - mob: MULE
+      weight: 4
+      y-offset: 0.0
+      gravity: true
+    - mob: LLAMA
+      weight: 4
+      y-offset: 0.0
+      gravity: true
+    - mob: WOLF
+      weight: 4
+      y-offset: 0.0
+      gravity: true
     - mob: PARROT
       weight: 3
       y-offset: 0.5
       gravity: false
-    - mob: HORSE
+
+    # Rare mobs
+    - mob: TURTLE
       weight: 3
       y-offset: 0.0
       gravity: true
-    - mob: TURTLE
+    - mob: OCELOT
+      weight: 3
+      y-offset: 0.0
+      gravity: true
+    - mob: GOAT
+      weight: 3
+      y-offset: 0.0
+      gravity: true
+    - mob: PANDA
       weight: 2
       y-offset: 0.0
       gravity: true
-    - mob: FOX
+    - mob: POLAR_BEAR
       weight: 2
       y-offset: 0.0
       gravity: true
-    - mob: CAT
+    - mob: MOOSHROOM
       weight: 2
+      y-offset: 0.0
+      gravity: true
+    - mob: CAMEL
+      weight: 2
+      y-offset: 0.0
+      gravity: true
+
+    # Ultra-rare special mobs
+    - mob: ARMADILLO
+      weight: 1
+      y-offset: 0.0
+      gravity: true
+    - mob: SNIFFER
+      weight: 1
       y-offset: 0.0
       gravity: true
 

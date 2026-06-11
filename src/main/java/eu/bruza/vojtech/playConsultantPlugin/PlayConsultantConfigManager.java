@@ -23,18 +23,30 @@ public class PlayConsultantConfigManager {
 
     // Mob spawn configuration
     private static final List<MobSpawnEntry> DEFAULT_MOB_SPAWNS = List.of(
-            new MobSpawnEntry(EntityType.ALLAY, 8, 0.5, false),
-            new MobSpawnEntry(EntityType.SHEEP, 6, 0.0, true),
-            new MobSpawnEntry(EntityType.CHICKEN, 5, 0.0, true),
-            new MobSpawnEntry(EntityType.COW, 5, 0.0, true),
-            new MobSpawnEntry(EntityType.PIG, 4, 0.0, true),
-            new MobSpawnEntry(EntityType.RABBIT, 4, 0.0, true),
-            new MobSpawnEntry(EntityType.BEE, 3, 0.5, true),
+            new MobSpawnEntry(EntityType.ALLAY, 20, 0.5, false),
+            new MobSpawnEntry(EntityType.SHEEP, 10, 0.0, true),
+            new MobSpawnEntry(EntityType.CHICKEN, 9, 0.0, true),
+            new MobSpawnEntry(EntityType.COW, 9, 0.0, true),
+            new MobSpawnEntry(EntityType.PIG, 8, 0.0, true),
+            new MobSpawnEntry(EntityType.RABBIT, 8, 0.0, true),
+            new MobSpawnEntry(EntityType.CAT, 7, 0.0, true),
+            new MobSpawnEntry(EntityType.FOX, 6, 0.0, true),
+            new MobSpawnEntry(EntityType.BEE, 6, 0.5, true),
+            new MobSpawnEntry(EntityType.HORSE, 5, 0.0, true),
+            new MobSpawnEntry(EntityType.DONKEY, 5, 0.0, true),
+            new MobSpawnEntry(EntityType.MULE, 4, 0.0, true),
+            new MobSpawnEntry(EntityType.LLAMA, 4, 0.0, true),
+            new MobSpawnEntry(EntityType.WOLF, 4, 0.0, true),
+            new MobSpawnEntry(EntityType.OCELOT, 3, 0.0, true),
+            new MobSpawnEntry(EntityType.GOAT, 3, 0.0, true),
+            new MobSpawnEntry(EntityType.TURTLE, 3, 0.0, true),
             new MobSpawnEntry(EntityType.PARROT, 3, 0.5, false),
-            new MobSpawnEntry(EntityType.HORSE, 3, 0.0, true),
-            new MobSpawnEntry(EntityType.TURTLE, 2, 0.0, true),
-            new MobSpawnEntry(EntityType.FOX, 2, 0.0, true),
-            new MobSpawnEntry(EntityType.CAT, 2, 0.0, true)
+            new MobSpawnEntry(EntityType.PANDA, 2, 0.0, true),
+            new MobSpawnEntry(EntityType.POLAR_BEAR, 2, 0.0, true),
+            new MobSpawnEntry(EntityType.MOOSHROOM, 2, 0.0, true),
+            new MobSpawnEntry(EntityType.CAMEL, 2, 0.0, true),
+            new MobSpawnEntry(EntityType.ARMADILLO, 1, 0.0, true),
+            new MobSpawnEntry(EntityType.SNIFFER, 1, 0.0, true)
     );
 
     private final Random random = new Random();
@@ -91,7 +103,7 @@ public class PlayConsultantConfigManager {
         for (MobSpawnEntry e : mobSpawns) total += Math.max(0, e.weight);
         if (total <= 0 || mobSpawns.isEmpty()) {
             // fallback
-            return DEFAULT_MOB_SPAWNS.get(0);
+            return DEFAULT_MOB_SPAWNS.getFirst();
         }
         int r = random.nextInt(total);
         int acc = 0;
@@ -99,18 +111,24 @@ public class PlayConsultantConfigManager {
             acc += Math.max(0, e.weight);
             if (r < acc) return e;
         }
-        return mobSpawns.get(0);
+        return mobSpawns.getFirst();
     }
 
     private List<MobSpawnEntry> readMobSpawns(FileConfiguration config) {
         List<MobSpawnEntry> list = new ArrayList<>();
         try {
             List<Map<?, ?>> raw = config.getMapList("comments.mobs");
-            if (raw == null || raw.isEmpty()) return new ArrayList<>(DEFAULT_MOB_SPAWNS);
+            if (raw.isEmpty()) return new ArrayList<>(DEFAULT_MOB_SPAWNS);
             for (Map<?, ?> map : raw) {
                 Object mobObj = map.get("mob");
                 String mobName = mobObj != null ? mobObj.toString() : "ALLAY";
-                EntityType type = EntityType.valueOf(mobName.toUpperCase());
+                EntityType type;
+                try {
+                    type = EntityType.valueOf(mobName.toUpperCase());
+                } catch (IllegalArgumentException ex) {
+                    plugin.getLogger().warning("Invalid mob type in comments.mobs: " + mobName + ". Skipping entry.");
+                    continue;
+                }
 
                 int weight = 1;
                 try {
