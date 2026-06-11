@@ -12,10 +12,15 @@ commands:
     description: Gives the player a megaphone.
   removecomment:
     description: Removes the nearest comment marker and its hologram (admin only).
+  reloadconfig:
+    description: Reloads PlayConsultantPlugin configuration from disk.
 
 depend: [DecentHolograms]
 
 permissions:
   playconsultant.removecomment:
     description: Allows removing nearby comments
+    default: op
+  playconsultant.reloadconfig:
+    description: Allows reloading the plugin configuration
     default: op

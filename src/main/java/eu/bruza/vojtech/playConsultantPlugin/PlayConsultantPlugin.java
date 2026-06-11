@@ -3,7 +3,6 @@ package eu.bruza.vojtech.playConsultantPlugin;
 import org.bukkit.Location;
 import org.bukkit.NamespacedKey;
 import org.bukkit.plugin.java.JavaPlugin;
-import eu.bruza.vojtech.playConsultantPlugin.RemoveCommentCommand;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -18,6 +17,7 @@ public final class PlayConsultantPlugin extends JavaPlugin {
     private ItemManager itemManager;
     private WorldTravelManager worldTravelManager;
     private CommentCsvLogger commentCsvLogger;
+    private PlayConsultantConfigManager configManager;
     // Keys used to tag comment marker entities and store their hologram name
     private NamespacedKey commentMarkerKey;
     private NamespacedKey hologramNameKey;
@@ -26,16 +26,20 @@ public final class PlayConsultantPlugin extends JavaPlugin {
     public void onEnable() {
         getLogger().info("by Vojtech Bruza");
 
+        this.configManager = new PlayConsultantConfigManager(this);
+        this.configManager.load();
+
         this.itemManager = new ItemManager(this);
         this.worldTravelManager = new WorldTravelManager();
         this.worldTravelManager.ensureBuildWorldLoaded();
-        String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss"));
+        String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
         String logFileName = "comments_" + timestamp + ".csv";
         this.commentCsvLogger = new CommentCsvLogger(getDataFolder().toPath().resolve(logFileName), getLogger());
 
         // Register Command
         Objects.requireNonNull(getCommand("megaphone")).setExecutor(new MegaphoneCommand(this));
         Objects.requireNonNull(getCommand("removecomment")).setExecutor(new RemoveCommentCommand(this));
+        Objects.requireNonNull(getCommand("reloadconfig")).setExecutor(new ReloadConfigCommand(this));
 
         // Register Listeners
         getServer().getPluginManager().registerEvents(new MegaphoneListener(this), this);
@@ -49,6 +53,10 @@ public final class PlayConsultantPlugin extends JavaPlugin {
         if (commentCsvLogger != null) {
             commentCsvLogger.close();
         }
+    }
+
+    public PlayConsultantConfigManager getConfigManager() {
+        return configManager;
     }
 
     public ItemManager getItemManager() {

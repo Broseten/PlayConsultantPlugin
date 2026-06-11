@@ -23,10 +23,6 @@ import java.util.List;
 import java.util.UUID;
 
 public class MegaphoneListener implements Listener {
-    private static final int MIN_WORD_COUNT = 2;
-    private static final int CREATIVE_UNLOCK_COMMENT_COUNT = 2;
-    private static final double MIN_COMMENT_DISTANCE = 5.0;
-
     private final PlayConsultantPlugin plugin;
 
     public MegaphoneListener(PlayConsultantPlugin plugin) {
@@ -58,16 +54,19 @@ public class MegaphoneListener implements Listener {
         if (lastCommentLocation != null
                 && lastCommentLocation.getWorld() != null
                 && lastCommentLocation.getWorld().equals(player.getWorld())
-                && player.getLocation().distance(lastCommentLocation) < MIN_COMMENT_DISTANCE) {
+                && player.getLocation().distance(lastCommentLocation) < plugin.getConfigManager().getMinCommentDistance()) {
             player.sendMessage(Component.text("You already commented near here! Keep exploring.", NamedTextColor.RED));
             return;
         }
 
         plugin.startTyping(playerId);
-        player.sendMessage(Component.text("Type your comment in the chat (at least " + MIN_WORD_COUNT + " words):", NamedTextColor.GREEN));
+        player.sendMessage(Component.text(
+                "Type your comment in the chat (at least " + plugin.getConfigManager().getMinWordCount() + " words):",
+                NamedTextColor.GREEN
+        ));
     }
 
-    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = false)
+    @EventHandler(priority = EventPriority.HIGHEST)
     public void onChat(AsyncChatEvent event) {
         Player player = event.getPlayer();
         UUID playerId = player.getUniqueId();
@@ -95,9 +94,10 @@ public class MegaphoneListener implements Listener {
         }
 
         int wordCount = message.split("\\s+").length;
-        if (wordCount < MIN_WORD_COUNT) {
+        int minWordCount = plugin.getConfigManager().getMinWordCount();
+        if (wordCount < minWordCount) {
             player.sendMessage(Component.text(
-                    "That comment was only " + wordCount + " words. Please use at least " + MIN_WORD_COUNT + " words and try again!",
+                    "That comment was only " + wordCount + " words. Please use at least " + minWordCount + " words and try again!",
                     NamedTextColor.RED
             ));
             return;
@@ -139,7 +139,7 @@ public class MegaphoneListener implements Listener {
                     marker.getLocation().clone().add(0, 1.5, 0),
                     List.of(
                             "&e\"" + message + "\"",
-                            "&7- Laptop " + player.getName()
+                            "&7- " + player.getName()
                     )
             );
 
@@ -161,7 +161,7 @@ public class MegaphoneListener implements Listener {
 
             player.sendMessage(Component.text("Comment saved! Total comments: " + commentsMade, NamedTextColor.GREEN));
 
-            if (commentsMade >= CREATIVE_UNLOCK_COMMENT_COUNT && plugin.markCreativeKeyGranted(playerId)) {
+            if (commentsMade >= plugin.getConfigManager().getCreativeUnlockCommentCount() && plugin.markCreativeKeyGranted(playerId)) {
                 if (!plugin.getItemManager().hasCreativeKey(player)) {
                     plugin.getItemManager().giveCreativeKey(player);
                 }

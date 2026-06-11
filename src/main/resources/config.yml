@@ -1,0 +1,15 @@
+comments:
+  # Minimum number of words a player must type before a comment is accepted.
+  min-word-count: 8
+
+  # How close a player can be to their previous comment before the megaphone blocks a new one.
+  min-comment-distance: 30.0
+
+  # How many valid comments are needed before the creative key is granted.
+  creative-unlock-comment-count: 5
+
+commands:
+  removecomment:
+    # Search radius for finding the nearest comment marker.
+    search-radius: 5.0
+

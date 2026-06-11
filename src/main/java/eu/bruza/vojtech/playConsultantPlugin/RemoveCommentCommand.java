@@ -14,14 +14,13 @@ import org.jetbrains.annotations.NotNull;
 
 public class RemoveCommentCommand implements CommandExecutor {
     private final PlayConsultantPlugin plugin;
-    private static final double SEARCH_RADIUS = 6.0;
 
     public RemoveCommentCommand(PlayConsultantPlugin plugin) {
         this.plugin = plugin;
     }
 
     @Override
-    public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
+    public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String @NotNull [] args) {
         if (!(sender instanceof Player player)) {
             sender.sendMessage("Only players can run this command.");
             return true;
@@ -34,10 +33,11 @@ public class RemoveCommentCommand implements CommandExecutor {
 
         // Run on main thread
         plugin.getServer().getScheduler().runTask(plugin, () -> {
+            double searchRadius = plugin.getConfigManager().getRemoveCommentSearchRadius();
             Entity nearest = null;
             double best = Double.MAX_VALUE;
 
-            for (Entity e : player.getNearbyEntities(SEARCH_RADIUS, SEARCH_RADIUS, SEARCH_RADIUS)) {
+            for (Entity e : player.getNearbyEntities(searchRadius, searchRadius, searchRadius)) {
                 if (e == null) continue;
                 // skip players
                 if (e instanceof Player) continue;
@@ -54,7 +54,7 @@ public class RemoveCommentCommand implements CommandExecutor {
             }
 
             if (nearest == null) {
-                player.sendMessage(Component.text("No comment marker found within " + (int) SEARCH_RADIUS + " blocks.", NamedTextColor.RED));
+                player.sendMessage(Component.text("No comment marker found within " + (int) searchRadius + " blocks.", NamedTextColor.RED));
                 return;
             }
 
