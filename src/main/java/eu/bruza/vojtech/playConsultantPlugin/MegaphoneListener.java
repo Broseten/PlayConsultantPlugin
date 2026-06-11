@@ -11,6 +11,7 @@ import org.bukkit.entity.Allay;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
+import org.bukkit.event.EventPriority;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -66,13 +67,21 @@ public class MegaphoneListener implements Listener {
         player.sendMessage(Component.text("Type your comment in the chat (at least " + MIN_WORD_COUNT + " words):", NamedTextColor.GREEN));
     }
 
-    @EventHandler
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = false)
     public void onChat(AsyncChatEvent event) {
         Player player = event.getPlayer();
         UUID playerId = player.getUniqueId();
 
         // If they aren't typing a comment, ignore the chat event
         if (!plugin.isTyping(playerId)) return;
+
+        // Has another plugin (like a chat filter or mute system) canceled this event already?
+        if (event.isCancelled()) {
+            // The filter blocked it. Stop the typing state and abort the hologram.
+            // The filter likely already sent the player a warning, so we stay silent.
+            plugin.stopTyping(playerId);
+            return;
+        }
 
         // They are typing a comment, so stop it from showing to everyone
         event.setCancelled(true);
