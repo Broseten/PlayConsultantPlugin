@@ -1,6 +1,12 @@
 package eu.bruza.vojtech.playConsultantPlugin;
 
 import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.entity.EntityType;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Random;
 
 public class PlayConsultantConfigManager {
     private static final int DEFAULT_MIN_WORD_COUNT = 8;
@@ -14,6 +20,25 @@ public class PlayConsultantConfigManager {
     private volatile int creativeUnlockCommentCount = DEFAULT_CREATIVE_UNLOCK_COMMENT_COUNT;
     private volatile double minCommentDistance = DEFAULT_MIN_COMMENT_DISTANCE;
     private volatile double removeCommentSearchRadius = DEFAULT_REMOVE_COMMENT_SEARCH_RADIUS;
+
+    // Mob spawn configuration
+    private static final List<MobSpawnEntry> DEFAULT_MOB_SPAWNS = List.of(
+            new MobSpawnEntry(EntityType.ALLAY, 8, 0.5, false),
+            new MobSpawnEntry(EntityType.SHEEP, 6, 0.0, true),
+            new MobSpawnEntry(EntityType.CHICKEN, 5, 0.0, true),
+            new MobSpawnEntry(EntityType.COW, 5, 0.0, true),
+            new MobSpawnEntry(EntityType.PIG, 4, 0.0, true),
+            new MobSpawnEntry(EntityType.RABBIT, 4, 0.0, true),
+            new MobSpawnEntry(EntityType.BEE, 3, 0.5, true),
+            new MobSpawnEntry(EntityType.PARROT, 3, 0.5, false),
+            new MobSpawnEntry(EntityType.HORSE, 3, 0.0, true),
+            new MobSpawnEntry(EntityType.TURTLE, 2, 0.0, true),
+            new MobSpawnEntry(EntityType.FOX, 2, 0.0, true),
+            new MobSpawnEntry(EntityType.CAT, 2, 0.0, true)
+    );
+
+    private final Random random = new Random();
+    private volatile List<MobSpawnEntry> mobSpawns = new ArrayList<>(DEFAULT_MOB_SPAWNS);
 
     public PlayConsultantConfigManager(PlayConsultantPlugin plugin) {
         this.plugin = plugin;
@@ -48,12 +73,89 @@ public class PlayConsultantConfigManager {
                 "commands.removecomment.search-radius"
         );
 
+        // read mob spawn list
+        mobSpawns = readMobSpawns(config);
+
         plugin.getLogger().info(
                 "Loaded settings: minWordCount=" + minWordCount
                         + ", creativeUnlockCommentCount=" + creativeUnlockCommentCount
                         + ", minCommentDistance=" + minCommentDistance
                         + ", removeCommentSearchRadius=" + removeCommentSearchRadius
         );
+        plugin.getLogger().info("Loaded mob spawn list with " + mobSpawns.size() + " entries.");
+    }
+
+    public MobSpawnEntry pickRandomMobSpawn() {
+        // Weighted random selection
+        int total = 0;
+        for (MobSpawnEntry e : mobSpawns) total += Math.max(0, e.weight);
+        if (total <= 0 || mobSpawns.isEmpty()) {
+            // fallback
+            return DEFAULT_MOB_SPAWNS.get(0);
+        }
+        int r = random.nextInt(total);
+        int acc = 0;
+        for (MobSpawnEntry e : mobSpawns) {
+            acc += Math.max(0, e.weight);
+            if (r < acc) return e;
+        }
+        return mobSpawns.get(0);
+    }
+
+    private List<MobSpawnEntry> readMobSpawns(FileConfiguration config) {
+        List<MobSpawnEntry> list = new ArrayList<>();
+        try {
+            List<Map<?, ?>> raw = config.getMapList("comments.mobs");
+            if (raw == null || raw.isEmpty()) return new ArrayList<>(DEFAULT_MOB_SPAWNS);
+            for (Map<?, ?> map : raw) {
+                Object mobObj = map.get("mob");
+                String mobName = mobObj != null ? mobObj.toString() : "ALLAY";
+                EntityType type = EntityType.valueOf(mobName.toUpperCase());
+
+                int weight = 1;
+                try {
+                    Object w = map.get("weight");
+                    if (w instanceof Number) weight = ((Number) w).intValue();
+                    else if (w != null) weight = Integer.parseInt(w.toString());
+                } catch (Exception ignored) {
+                }
+
+                double yOffset = 0.0;
+                try {
+                    Object y = map.get("y-offset");
+                    if (y instanceof Number) yOffset = ((Number) y).doubleValue();
+                    else if (y != null) yOffset = Double.parseDouble(y.toString());
+                } catch (Exception ignored) {
+                }
+
+                boolean gravity = false;
+                try {
+                    Object g = map.get("gravity");
+                    if (g != null) gravity = Boolean.parseBoolean(g.toString());
+                } catch (Exception ignored) {
+                }
+
+                list.add(new MobSpawnEntry(type, Math.max(0, weight), yOffset, gravity));
+            }
+        } catch (Exception e) {
+            plugin.getLogger().warning("Failed to read comments.mobs from config: " + e.getMessage());
+            return new ArrayList<>(DEFAULT_MOB_SPAWNS);
+        }
+        return list;
+    }
+
+    public static final class MobSpawnEntry {
+        public final EntityType type;
+        public final int weight;
+        public final double yOffset;
+        public final boolean gravity;
+
+        public MobSpawnEntry(EntityType type, int weight, double yOffset, boolean gravity) {
+            this.type = type;
+            this.weight = weight;
+            this.yOffset = yOffset;
+            this.gravity = gravity;
+        }
     }
 
     public int getMinWordCount() {

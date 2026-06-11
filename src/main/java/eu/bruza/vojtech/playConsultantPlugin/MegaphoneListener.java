@@ -1,15 +1,12 @@
 package eu.bruza.vojtech.playConsultantPlugin;
 
 import eu.decentsoftware.holograms.api.DHAPI;
-// ...existing code...
 import io.papermc.paper.event.player.AsyncChatEvent;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import org.bukkit.Location;
-import org.bukkit.entity.Allay;
 import org.bukkit.entity.Entity;
-import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventPriority;
 import org.bukkit.persistence.PersistentDataType;
@@ -108,14 +105,32 @@ public class MegaphoneListener implements Listener {
             Location commentLocation = player.getLocation().clone();
             plugin.logComment(playerId, player.getName(), message, commentLocation);
 
-            Location markerLocation = commentLocation.clone().add(0, 0.5, 0);
-            Entity marker = player.getWorld().spawnEntity(markerLocation, EntityType.ALLAY);
-            if (marker instanceof Allay allay) {
-                allay.setAI(false);
-                allay.setSilent(true);
+            // pick a mob from config (weighted)
+            PlayConsultantConfigManager.MobSpawnEntry spawn = plugin.getConfigManager().pickRandomMobSpawn();
+            Location markerLocation = commentLocation.clone().add(0, spawn.yOffset, 0);
+            Entity marker = player.getWorld().spawnEntity(markerLocation, spawn.type);
+
+            // disable AI for mobs that support it (most mob types implement org.bukkit.entity.Mob)
+            try {
+                if (marker instanceof org.bukkit.entity.Mob mobEntity) {
+                    mobEntity.setAI(false);
+                }
+            } catch (NoClassDefFoundError | Exception ex) {
+                // ignore if API differences exist
             }
+
+            // Make silent if possible
+            try {
+                marker.setSilent(true);
+            } catch (NoSuchMethodError | UnsupportedOperationException ignored) {
+            }
+
             marker.setInvulnerable(true);
-            marker.setGravity(false);
+            // respect gravity setting from config (true = has gravity)
+            try {
+                marker.setGravity(spawn.gravity);
+            } catch (NoSuchMethodError | UnsupportedOperationException ignored) {
+            }
             marker.setPersistent(true);
 
             String hologramName = "comment_" + playerId + "_" + System.currentTimeMillis();

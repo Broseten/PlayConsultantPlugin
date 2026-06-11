@@ -8,6 +8,61 @@ comments:
   # How many valid comments are needed before the creative key is granted.
   creative-unlock-comment-count: 5
 
+  # List of mobs that can spawn when a comment is created. Each entry
+  # has a 'mob' name (EntityType), a numeric 'weight' (higher = more likely),
+  # and an optional 'y-offset' to tweak spawn height. 'gravity' controls whether
+  # the entity has gravity enabled (true = will fall/stand on ground).
+  # Players can edit these values to change spawn probabilities and heights.
+  mobs:
+    - mob: ALLAY
+      weight: 8
+      y-offset: 0.5
+      gravity: false
+    - mob: SHEEP
+      weight: 6
+      y-offset: 0.0
+      gravity: true
+    - mob: CHICKEN
+      weight: 5
+      y-offset: 0.0
+      gravity: true
+    - mob: COW
+      weight: 5
+      y-offset: 0.0
+      gravity: true
+    - mob: PIG
+      weight: 4
+      y-offset: 0.0
+      gravity: true
+    - mob: RABBIT
+      weight: 4
+      y-offset: 0.0
+      gravity: true
+    - mob: BEE
+      weight: 3
+      y-offset: 0.5
+      gravity: false
+    - mob: PARROT
+      weight: 3
+      y-offset: 0.5
+      gravity: false
+    - mob: HORSE
+      weight: 3
+      y-offset: 0.0
+      gravity: true
+    - mob: TURTLE
+      weight: 2
+      y-offset: 0.0
+      gravity: true
+    - mob: FOX
+      weight: 2
+      y-offset: 0.0
+      gravity: true
+    - mob: CAT
+      weight: 2
+      y-offset: 0.0
+      gravity: true
+
 commands:
   removecomment:
     # Search radius for finding the nearest comment marker.
