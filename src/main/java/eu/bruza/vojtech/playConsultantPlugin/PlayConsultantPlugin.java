@@ -1,7 +1,10 @@
 package eu.bruza.vojtech.playConsultantPlugin;
 
+import org.bukkit.Location;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
@@ -21,7 +24,9 @@ public final class PlayConsultantPlugin extends JavaPlugin {
         this.itemManager = new ItemManager(this);
         this.worldTravelManager = new WorldTravelManager();
         this.worldTravelManager.ensureBuildWorldLoaded();
-        this.commentCsvLogger = new CommentCsvLogger(getDataFolder().toPath().resolve("comments.csv"), getLogger());
+        String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss"));
+        String logFileName = "comments_" + timestamp + ".csv";
+        this.commentCsvLogger = new CommentCsvLogger(getDataFolder().toPath().resolve(logFileName), getLogger());
 
         // Register Command
         Objects.requireNonNull(getCommand("megaphone")).setExecutor(new MegaphoneCommand(this));
@@ -88,10 +93,10 @@ public final class PlayConsultantPlugin extends JavaPlugin {
         return true;
     }
 
-    public void logComment(UUID playerId, String playerName, String comment) {
+    public void logComment(UUID playerId, String playerName, String comment, Location loc) {
         CommentCsvLogger logger = this.commentCsvLogger;
         if (logger != null) {
-            logger.logComment(playerId, playerName, comment);
+            logger.logComment(playerId, playerName, comment, loc);
         }
     }
 }

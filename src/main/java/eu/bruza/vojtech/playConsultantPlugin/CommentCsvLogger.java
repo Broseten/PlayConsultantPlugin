@@ -1,5 +1,7 @@
 package eu.bruza.vojtech.playConsultantPlugin;
 
+import org.bukkit.Location;
+
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -16,7 +18,7 @@ import java.util.logging.Logger;
 
 public final class CommentCsvLogger implements AutoCloseable {
     private static final DateTimeFormatter TIMESTAMP_FORMATTER = DateTimeFormatter.ISO_OFFSET_DATE_TIME.withZone(ZoneOffset.UTC);
-    private static final String HEADER = "timestamp_utc,player_name,player_uuid,comment";
+    private static final String HEADER = "timestamp_utc,player_name,player_uuid,comment,world,x,y,z";
 
     private final Path csvPath;
     private final Logger logger;
@@ -34,9 +36,13 @@ public final class CommentCsvLogger implements AutoCloseable {
         initializeFile();
     }
 
-    public void logComment(UUID playerId, String playerName, String comment) {
+    public void logComment(UUID playerId, String playerName, String comment, Location loc) {
         String timestamp = TIMESTAMP_FORMATTER.format(Instant.now());
-        String line = csvRecord(timestamp, playerName, playerId.toString(), comment);
+        String worldName = loc != null && loc.getWorld() != null ? loc.getWorld().getName() : "";
+        String x = loc != null ? Integer.toString(loc.getBlockX()) : "";
+        String y = loc != null ? Integer.toString(loc.getBlockY()) : "";
+        String z = loc != null ? Integer.toString(loc.getBlockZ()) : "";
+        String line = csvRecord(timestamp, playerName, playerId.toString(), comment, worldName, x, y, z);
 
         executor.execute(() -> {
             try {

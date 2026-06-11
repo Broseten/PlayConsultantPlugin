@@ -1,5 +1,7 @@
 package eu.bruza.vojtech.playConsultantPlugin;
 
+import eu.decentsoftware.holograms.api.DHAPI;
+import eu.decentsoftware.holograms.api.holograms.Hologram;
 import io.papermc.paper.event.player.AsyncChatEvent;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
@@ -94,15 +96,18 @@ public class MegaphoneListener implements Listener {
 
         // Continue on the main thread for world/entity/hologram operations.
         plugin.getServer().getScheduler().runTask(plugin, () -> {
-            plugin.logComment(playerId, player.getName(), message);
+            Location commentLocation = player.getLocation().clone();
+            plugin.logComment(playerId, player.getName(), message, commentLocation);
 
-            Entity marker = player.getWorld().spawnEntity(player.getLocation().add(0, 0.5, 0), EntityType.ALLAY);
+            Location markerLocation = commentLocation.clone().add(0, 0.5, 0);
+            Entity marker = player.getWorld().spawnEntity(markerLocation, EntityType.ALLAY);
             if (marker instanceof Allay allay) {
                 allay.setAI(false);
                 allay.setSilent(true);
             }
             marker.setInvulnerable(true);
             marker.setGravity(false);
+            marker.setPersistent(true);
 
             String hologramName = "comment_" + playerId + "_" + System.currentTimeMillis();
             boolean hologramCreated = createHologram(
@@ -146,12 +151,11 @@ public class MegaphoneListener implements Listener {
 
     private boolean createHologram(String name, Location location, List<String> lines) {
         try {
-            Class<?> dhapiClass = Class.forName("eu.decentsoftware.holograms.api.DHAPI");
-            Method createMethod = dhapiClass.getMethod("createHologram", String.class, Location.class, List.class);
-            createMethod.invoke(null, name, location, lines);
+            // Use directly the dependency on DecentHolograms instead of using reflection
+            Hologram hologram = DHAPI.createHologram(name, location, true, lines);
             return true;
-        } catch (ReflectiveOperationException exception) {
-            plugin.getLogger().warning("Failed to create DecentHolograms hologram: " + exception.getMessage());
+        } catch (Exception e) {
+            plugin.getLogger().warning("Failed to create hologram: " + e.getMessage());
             return false;
         }
     }
