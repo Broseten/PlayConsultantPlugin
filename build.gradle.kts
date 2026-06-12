@@ -24,6 +24,8 @@ dependencies {
     compileOnly("com.intellectualsites.plotsquared:plotsquared-bukkit") { isTransitive = false }
     // FastAsyncWorldEdit (https://intellectualsites.gitbook.io/fastasyncworldedit/api/api-usage)
     compileOnly("com.fastasyncworldedit:FastAsyncWorldEdit-Core")
+    // to use bukkit adapter
+    compileOnly("com.fastasyncworldedit:FastAsyncWorldEdit-Bukkit") { isTransitive = false }
 }
 
 java {
