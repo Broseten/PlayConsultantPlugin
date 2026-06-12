@@ -16,6 +16,7 @@ public final class PlayConsultantPlugin extends JavaPlugin {
 
     private ItemManager itemManager;
     private WorldTravelManager worldTravelManager;
+    private PlotManager plotManager;
     private CommentCsvLogger commentCsvLogger;
     private PlayConsultantConfigManager configManager;
     // Keys used to tag comment marker entities and store their hologram name
@@ -32,6 +33,7 @@ public final class PlayConsultantPlugin extends JavaPlugin {
         this.itemManager = new ItemManager(this);
         this.worldTravelManager = new WorldTravelManager();
         this.worldTravelManager.ensureBuildWorldLoaded();
+        this.plotManager = new PlotManager(this);
         String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
         String logFileName = "comments_" + timestamp + ".csv";
         this.commentCsvLogger = new CommentCsvLogger(getDataFolder().toPath().resolve(logFileName), getLogger());
@@ -65,6 +67,10 @@ public final class PlayConsultantPlugin extends JavaPlugin {
 
     public WorldTravelManager getWorldTravelManager() {
         return worldTravelManager;
+    }
+
+    public PlotManager getPlotManager() {
+        return plotManager;
     }
 
     public PlayerData getPlayerData(UUID playerId) {

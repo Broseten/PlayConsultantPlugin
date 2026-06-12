@@ -9,7 +9,6 @@ import org.bukkit.Location;
 import org.bukkit.entity.Allay;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Mob;
-import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventPriority;
 import org.bukkit.persistence.PersistentDataType;
@@ -20,7 +19,6 @@ import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.event.player.PlayerInteractAtEntityEvent;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.scheduler.BukkitRunnable;
 
 import java.util.List;
 import java.util.UUID;
@@ -240,6 +238,9 @@ public class MegaphoneListener implements Listener {
             player.sendMessage(Component.text("Comment saved! Total comments: " + commentsMade, NamedTextColor.GREEN));
 
             if (commentsMade >= plugin.getConfigManager().getCreativeUnlockCommentCount() && plugin.markCreativeKeyGranted(playerId)) {
+                // Reward player with a plot in the creative world
+                plugin.getPlotManager().rewardPlayerWithCreativePlot(player);
+
                 if (!plugin.getItemManager().hasCreativeKey(player)) {
                     plugin.getItemManager().giveCreativeKey(player);
                 }
@@ -247,6 +248,7 @@ public class MegaphoneListener implements Listener {
                         "You've unlocked the Build World! Right-click your enchanted key to travel.",
                         NamedTextColor.GOLD
                 ));
+
             }
         });
     }

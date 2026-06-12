@@ -15,7 +15,7 @@ commands:
   reloadconfig:
     description: Reloads PlayConsultantPlugin configuration from disk.
 
-depend: [DecentHolograms]
+depend: [DecentHolograms, PlotSquared, FastAsyncWorldEdit]
 
 permissions:
   playconsultant.removecomment:

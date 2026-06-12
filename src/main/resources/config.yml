@@ -8,6 +8,12 @@ comments:
   # How many valid comments are needed before the creative key is granted.
   creative-unlock-comment-count: 5
 
+  # Creative plot settings for when players unlock the build world
+  creative-plot:
+    # Name of the schematic to load when a player is assigned a plot
+    # The schematic should be located in the PlotSquared schematics folder
+    schematic-name: 'city_block'
+
   # List of mobs that can spawn when a comment is created.
   # Weight is the spawn probability weight (higher = more common).
   # Keep ALLAY as the default/common mob; rarer mobs have much lower weights.

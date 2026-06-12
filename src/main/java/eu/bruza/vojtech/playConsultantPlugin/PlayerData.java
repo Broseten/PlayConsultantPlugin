@@ -1,5 +1,6 @@
 package eu.bruza.vojtech.playConsultantPlugin;
 
+import com.plotsquared.core.plot.PlotId;
 import org.bukkit.Location;
 
 public class PlayerData {
@@ -7,6 +8,7 @@ public class PlayerData {
     private Location lastCommentLocation = null;
     private boolean isTypingComment = false;
     private boolean receivedCreativeKey = false;
+    private PlotId assignedPlotId = null;
 
     // Getters and Setters
     public synchronized int getCommentsMade() {
@@ -40,5 +42,12 @@ public class PlayerData {
     public synchronized void setReceivedCreativeKey(boolean receivedCreativeKey) {
         this.receivedCreativeKey = receivedCreativeKey;
     }
-}
 
+    public synchronized PlotId getAssignedPlotId() {
+        return assignedPlotId;
+    }
+
+    public synchronized void setAssignedPlotId(PlotId plotId) {
+        this.assignedPlotId = plotId;
+    }
+}

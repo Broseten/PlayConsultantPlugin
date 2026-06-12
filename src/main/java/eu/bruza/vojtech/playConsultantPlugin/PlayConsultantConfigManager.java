@@ -13,6 +13,7 @@ public class PlayConsultantConfigManager {
     private static final int DEFAULT_CREATIVE_UNLOCK_COMMENT_COUNT = 5;
     private static final double DEFAULT_MIN_COMMENT_DISTANCE = 30.0;
     private static final double DEFAULT_REMOVE_COMMENT_SEARCH_RADIUS = 5.0;
+    private static final String DEFAULT_SCHEMATIC_NAME = "city_block";
 
     private final PlayConsultantPlugin plugin;
 
@@ -20,6 +21,7 @@ public class PlayConsultantConfigManager {
     private volatile int creativeUnlockCommentCount = DEFAULT_CREATIVE_UNLOCK_COMMENT_COUNT;
     private volatile double minCommentDistance = DEFAULT_MIN_COMMENT_DISTANCE;
     private volatile double removeCommentSearchRadius = DEFAULT_REMOVE_COMMENT_SEARCH_RADIUS;
+    private volatile String schematicName = DEFAULT_SCHEMATIC_NAME;
 
     // Mob spawn configuration
     private static final List<MobSpawnEntry> DEFAULT_MOB_SPAWNS = List.of(
@@ -84,6 +86,7 @@ public class PlayConsultantConfigManager {
                 DEFAULT_REMOVE_COMMENT_SEARCH_RADIUS,
                 "commands.removecomment.search-radius"
         );
+        schematicName = config.getString("comments.creative-plot.schematic-name", DEFAULT_SCHEMATIC_NAME);
 
         // read mob spawn list
         mobSpawns = readMobSpawns(config);
@@ -93,6 +96,7 @@ public class PlayConsultantConfigManager {
                         + ", creativeUnlockCommentCount=" + creativeUnlockCommentCount
                         + ", minCommentDistance=" + minCommentDistance
                         + ", removeCommentSearchRadius=" + removeCommentSearchRadius
+                        + ", schematicName=" + schematicName
         );
         plugin.getLogger().info("Loaded mob spawn list with " + mobSpawns.size() + " entries.");
     }
@@ -190,6 +194,10 @@ public class PlayConsultantConfigManager {
 
     public double getRemoveCommentSearchRadius() {
         return removeCommentSearchRadius;
+    }
+
+    public String getSchematicName() {
+        return schematicName;
     }
 
     private int readPositiveInt(FileConfiguration config, String path, int defaultValue, String label) {

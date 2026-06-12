@@ -31,6 +31,13 @@ public class CreativeKeyListener implements Listener {
 
         event.setCancelled(true);
 
+        // First try to teleport to their assigned plot
+        if (plugin.getPlotManager().teleportToAssignedPlot(player)) {
+            player.sendMessage(Component.text("The key pulls you to your plot!", NamedTextColor.AQUA));
+            return;
+        }
+
+        // Fallback: toggle between worlds (old behavior) if no plot is assigned yet
         boolean toggled = plugin.getWorldTravelManager().toggleWorld(player);
         if (!toggled) {
             player.sendMessage(Component.text("That key cannot find the destination world right now.", NamedTextColor.RED));
