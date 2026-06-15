@@ -26,6 +26,7 @@ dependencies {
     compileOnly("com.fastasyncworldedit:FastAsyncWorldEdit-Core")
     // to use bukkit adapter
     compileOnly("com.fastasyncworldedit:FastAsyncWorldEdit-Bukkit") { isTransitive = false }
+    compileOnly(files("libs/PlaceholderAPI-2.12.2.jar"))
 }
 
 java {

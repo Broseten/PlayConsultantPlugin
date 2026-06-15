@@ -64,7 +64,7 @@ public class PlayerDataStore {
             ConfigurationSection section = players.getConfigurationSection(key);
             if (section == null) continue;
 
-            PlayerData data = new PlayerData();
+            PlayerData data = new PlayerData(uuid);
             data.setCommentsMade(section.getInt("commentsMade", 0));
             data.setReceivedCreativeKey(section.getBoolean("receivedCreativeKey", false));
 

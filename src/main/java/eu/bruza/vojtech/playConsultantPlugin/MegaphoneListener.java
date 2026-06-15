@@ -2,6 +2,7 @@ package eu.bruza.vojtech.playConsultantPlugin;
 
 import eu.decentsoftware.holograms.api.DHAPI;
 import io.papermc.paper.event.player.AsyncChatEvent;
+import net.kyori.adventure.bossbar.BossBar;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
@@ -14,24 +15,54 @@ import org.bukkit.entity.Mob;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.entity.EntityDeathEvent;
+import org.bukkit.event.player.*;
 import org.bukkit.loot.Lootable;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
-import org.bukkit.event.player.PlayerInteractEvent;
-import org.bukkit.event.player.PlayerInteractEntityEvent;
-import org.bukkit.event.player.PlayerInteractAtEntityEvent;
 import org.bukkit.inventory.ItemStack;
+import org.jspecify.annotations.NonNull;
 
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class MegaphoneListener implements Listener {
     private final PlayConsultantPlugin plugin;
 
+    private final Map<UUID, BossBar> activeBossBars = new ConcurrentHashMap<>();
+
     public MegaphoneListener(PlayConsultantPlugin plugin) {
         this.plugin = plugin;
+    }
+
+    @EventHandler
+    public void onPlayerJoin(PlayerJoinEvent event) {
+        Player player = event.getPlayer();
+
+        // Wait a brief moment to ensure player data is fully loaded into your Map
+        plugin.getServer().getScheduler().runTaskLater(plugin, () -> {
+            PlayerData data = plugin.getPlayerData(player.getUniqueId());
+            if (data != null) {
+                int target = plugin.getConfigManager().getCreativeUnlockCommentCount();
+
+                // Show them their current BossBar progress immediately when they log in!
+                updateBossBar(player, data.getCommentsMade(), target);
+            }
+        }, 20L); // 20 ticks = 1 second delay
+    }
+
+    @EventHandler
+    public void onPlayerQuit(PlayerQuitEvent event) {
+        // Prevent memory leaks by removing the BossBar from the map when they leave
+        BossBar oldBar = activeBossBars.remove(event.getPlayer().getUniqueId());
+
+        // Hide the bar (necessary so the server stops sending packets to a disconnected client)
+        if (oldBar != null) {
+            event.getPlayer().hideBossBar(oldBar);
+        }
     }
 
     @EventHandler
@@ -137,115 +168,7 @@ public class MegaphoneListener implements Listener {
 
         // Continue on the main thread for world/entity/hologram operations.
         plugin.getServer().getScheduler().runTask(plugin, () -> {
-            Location commentLocation = player.getLocation().clone();
-            plugin.logComment(playerId, player.getName(), message, commentLocation);
-
-            // pick a mob from config (weighted)
-            PlayConsultantConfigManager.MobSpawnEntry spawn = plugin.getConfigManager().pickRandomMobSpawn();
-            Location markerLocation = commentLocation.clone().add(0, spawn.yOffset, 0);
-            Entity marker = player.getWorld().spawnEntity(markerLocation, spawn.type);
-
-            if (marker instanceof Lootable) {
-                Lootable lootable = (Lootable) marker;
-                // Force it to use the vanilla empty loot table
-                lootable.setLootTable(Bukkit.getLootTable(NamespacedKey.minecraft("empty")));
-            }
-
-            // disable AI for mobs that support it (most mob types implement org.bukkit.entity.Mob)
-            try {
-                if (marker instanceof Mob mobEntity) {
-                    mobEntity.setAI(false);
-                }
-            } catch (NoClassDefFoundError | Exception ex) {
-                // ignore if API differences exist
-            }
-
-            if (marker instanceof Allay allay) {
-                try {
-                    allay.setCanPickupItems(false);
-                } catch (NoSuchMethodError | UnsupportedOperationException ignored) {
-                }
-            }
-
-//            if (marker instanceof LivingEntity livingEntity) {
-//                // periodically look at players
-//                new BukkitRunnable() {
-//                    @Override
-//                    public void run() {
-//                        if (!livingEntity.isValid() || livingEntity.isDead()) {
-//                            cancel();
-//                            return;
-//                        }
-//
-//                        Player nearest = null;
-//                        double nearestDistance = 12.0 * 12.0;
-//                        for (Player nearby : livingEntity.getWorld().getPlayers()) {
-//                            double distance = nearby.getLocation().distanceSquared(livingEntity.getLocation());
-//                            if (distance <= nearestDistance) {
-//                                nearestDistance = distance;
-//                                nearest = nearby;
-//                            }
-//                        }
-//
-//                        if (nearest != null) {
-//                            Location lookLocation = livingEntity.getLocation().clone();
-//                            lookLocation.setDirection(
-//                                    nearest.getEyeLocation().toVector().subtract(livingEntity.getEyeLocation().toVector())
-//                            );
-//                            livingEntity.teleport(lookLocation);
-//                        }
-//                    }
-//                }.runTaskTimer(plugin, 0L, 10L);
-//            }
-
-            // Make silent if possible
-            try {
-                marker.setSilent(true);
-            } catch (NoSuchMethodError | UnsupportedOperationException ignored) {
-            }
-
-            marker.setInvulnerable(true);
-            // respect gravity setting from config (true = has gravity)
-            try {
-                marker.setGravity(spawn.gravity);
-            } catch (NoSuchMethodError | UnsupportedOperationException ignored) {
-            }
-            marker.setPersistent(true);
-
-            String hologramName = "comment_" + playerId + "_" + System.currentTimeMillis();
-            // Tag the entity with a marker key and store hologram name so admins can remove it later
-            try {
-                marker.getPersistentDataContainer().set(
-                        plugin.getCommentMarkerKey(),
-                        PersistentDataType.BYTE,
-                        (byte) 1
-                );
-                marker.getPersistentDataContainer().set(
-                        plugin.getHologramNameKey(),
-                        PersistentDataType.STRING,
-                        hologramName
-                );
-            } catch (Exception ignored) {
-                // If PDC fails for any reason, continue silently (hologram still created)
-            }
-            boolean hologramCreated = createHologram(
-                    hologramName,
-                    marker.getLocation().clone().add(0, marker.getHeight() + 0.25, 0),
-                    List.of(
-                            "&e\"" + message + "\"",
-                            "&7- " + player.getName()
-                    )
-            );
-
-            if (!hologramCreated) {
-                player.sendMessage(Component.text(
-                        "Comment was captured, but hologram creation failed. Contact staff.",
-                        NamedTextColor.RED
-                ));
-            }
-
-            int commentsMade = plugin.incrementAndGetComments(playerId);
-            plugin.stopTyping(playerId);
+            Entity marker = addCommentMarker(player, playerId, message);
 
             // Store the last comment location
             PlayerData playerData = plugin.getPlayerData(playerId);
@@ -254,20 +177,160 @@ public class MegaphoneListener implements Listener {
                 plugin.persistPlayerData();
             }
 
-            player.sendMessage(Component.text("Comment saved! Total comments: " + commentsMade, NamedTextColor.GREEN));
+            updateCommentsMade(playerId, player);
 
-            if (commentsMade >= plugin.getConfigManager().getCreativeUnlockCommentCount() && plugin.markCreativeKeyGranted(playerId)) {
-                // Reward a player with a plot in the creative world.
-                // The key is handed out by PlotManager only AFTER the plot is generated,
-                // so the player can't teleport to an unfinished plot.
-                plugin.getPlotManager().rewardPlayerWithCreativePlot(player);
-
-                player.sendMessage(Component.text(
-                        "You've unlocked the Build World! Your plot is being prepared...",
-                        NamedTextColor.GOLD
-                ));
-            }
+            plugin.stopTyping(playerId);
         });
+    }
+
+    private @NonNull Entity addCommentMarker(Player player, UUID playerId, String message) {
+        Location commentLocation = player.getLocation().clone();
+        plugin.logComment(playerId, player.getName(), message, commentLocation);
+
+        // pick a mob from config (weighted)
+        PlayConsultantConfigManager.MobSpawnEntry spawn = plugin.getConfigManager().pickRandomMobSpawn();
+        Location markerLocation = commentLocation.clone().add(0, spawn.yOffset, 0);
+        Entity marker = player.getWorld().spawnEntity(markerLocation, spawn.type);
+
+        if (marker instanceof Lootable) {
+            Lootable lootable = (Lootable) marker;
+            // Force it to use the vanilla empty loot table
+            lootable.setLootTable(Bukkit.getLootTable(NamespacedKey.minecraft("empty")));
+        }
+
+        // disable AI for mobs that support it (most mob types implement org.bukkit.entity.Mob)
+        try {
+            if (marker instanceof Mob mobEntity) {
+                mobEntity.setAI(false);
+            }
+        } catch (NoClassDefFoundError | Exception ex) {
+            // ignore if API differences exist
+        }
+
+        if (marker instanceof Allay allay) {
+            try {
+                allay.setCanPickupItems(false);
+            } catch (NoSuchMethodError | UnsupportedOperationException ignored) {
+            }
+        }
+
+        // Make silent if possible
+        try {
+            marker.setSilent(true);
+        } catch (NoSuchMethodError | UnsupportedOperationException ignored) {
+        }
+
+        marker.setInvulnerable(true);
+        // respect gravity setting from config (true = has gravity)
+        try {
+            marker.setGravity(spawn.gravity);
+        } catch (NoSuchMethodError | UnsupportedOperationException ignored) {
+        }
+        marker.setPersistent(true);
+
+        String hologramName = "comment_" + playerId + "_" + System.currentTimeMillis();
+        // Tag the entity with a marker key and store hologram name so admins can remove it later
+        try {
+            marker.getPersistentDataContainer().set(
+                    plugin.getCommentMarkerKey(),
+                    PersistentDataType.BYTE,
+                    (byte) 1
+            );
+            marker.getPersistentDataContainer().set(
+                    plugin.getHologramNameKey(),
+                    PersistentDataType.STRING,
+                    hologramName
+            );
+        } catch (Exception ignored) {
+            // If PDC fails for any reason, continue silently (hologram still created)
+        }
+        boolean hologramCreated = createHologram(
+                hologramName,
+                marker.getLocation().clone().add(0, marker.getHeight() + 0.25, 0),
+                List.of(
+                        "&e\"" + message + "\"",
+                        "&7- " + player.getName()
+                )
+        );
+
+        if (!hologramCreated) {
+            player.sendMessage(Component.text(
+                    "Comment was captured, but hologram creation failed. Contact staff.",
+                    NamedTextColor.RED
+            ));
+        }
+        return marker;
+    }
+
+    private void updateCommentsMade(UUID playerId, Player player) {
+        int commentsMade = plugin.incrementAndGetComments(playerId);
+        int targetComments = plugin.getConfigManager().getCreativeUnlockCommentCount();
+
+        // 1. Send the instant Action Bar confirmation
+        player.sendActionBar(Component.text("Comment saved!", NamedTextColor.GREEN));
+
+        // 2. Update the persistent BossBar
+        updateBossBar(player, commentsMade, targetComments);
+
+        // 5. Keep the instant action bar feedback so they know the command worked
+        player.sendActionBar(Component.text("Comment saved!", NamedTextColor.GREEN));
+
+        // 3. Grant rewards if applicable
+        if (commentsMade >= targetComments && plugin.markCreativeKeyGranted(playerId)) {
+            plugin.getPlotManager().rewardPlayerWithCreativePlot(player);
+
+            player.sendMessage(Component.text(
+                    "You've unlocked the Build World! Your plot is being prepared...",
+                    NamedTextColor.GOLD
+            ));
+        }
+    }
+
+    private void updateBossBar(Player player, int commentsMade, int target) {
+        // 1. Fetch Leaderboard Data safely
+        List<PlayerData> top = plugin.getTopCommenters();
+        String top1Name = "Unknown";
+        int top1Value = 0;
+
+        if (!top.isEmpty()) {
+            top1Name = Bukkit.getOfflinePlayer(top.getFirst().getUuid()).getName();
+            if (top1Name == null) top1Name = "Unknown";
+            top1Value = top.getFirst().getCommentsMade();
+        }
+
+        // 2. Calculate Progress & Status
+        boolean hasUnlocked = commentsMade >= target;
+        float progress = Math.min(1.0f, (float) commentsMade / target);
+        BossBar.Color barColor = hasUnlocked ? BossBar.Color.PURPLE : BossBar.Color.GREEN;
+
+        // 3. Build the dynamic title
+        Component bossBarTitle;
+        if (hasUnlocked) {
+            bossBarTitle = Component.text("Build World Unlocked! | Total: ", NamedTextColor.GOLD)
+                    .append(Component.text(commentsMade, NamedTextColor.WHITE))
+                    .append(Component.text(" | #1 Leader: ", NamedTextColor.GRAY))
+                    .append(Component.text(top1Name + " (" + top1Value + ")", NamedTextColor.YELLOW));
+        } else {
+            bossBarTitle = Component.text("Progress to Build World: ", NamedTextColor.WHITE)
+                    .append(Component.text(commentsMade + "/" + target, NamedTextColor.GREEN))
+                    .append(Component.text(" | #1 Leader: ", NamedTextColor.GRAY))
+                    .append(Component.text(top1Name + " (" + top1Value + ")", NamedTextColor.GOLD));
+        }
+
+        // 4. Update existing BossBar or create a new one
+        BossBar existingBar = activeBossBars.get(player.getUniqueId());
+
+        if (existingBar != null) {
+            // Just smoothly update the values of the existing bar
+            existingBar.name(bossBarTitle);
+            existingBar.progress(progress);
+            existingBar.color(barColor);
+        } else {
+            // First time seeing it? Create it, show it, and save it
+            BossBar newBar = BossBar.bossBar(bossBarTitle, progress, barColor, BossBar.Overlay.PROGRESS);
+            player.showBossBar(newBar);
+            activeBossBars.put(player.getUniqueId(), newBar);
+        }
     }
 
     private boolean createHologram(String name, Location location, List<String> lines) {

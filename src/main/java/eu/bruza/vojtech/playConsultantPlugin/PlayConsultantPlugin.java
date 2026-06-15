@@ -11,10 +11,12 @@ import org.bukkit.scheduler.BukkitTask;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 public final class PlayConsultantPlugin extends JavaPlugin {
     private final Map<UUID, PlayerData> activePlayers = new ConcurrentHashMap<>();
@@ -58,6 +60,12 @@ public final class PlayConsultantPlugin extends JavaPlugin {
         // Register Listeners
         getServer().getPluginManager().registerEvents(new MegaphoneListener(this), this);
         getServer().getPluginManager().registerEvents(new CreativeKeyListener(this), this);
+
+        // Register PlaceholderAPI expansion if present
+        if (Bukkit.getPluginManager().getPlugin("PlaceholderAPI") != null) {
+            new PapiExpansion(this).register();
+            getLogger().info("PlaceholderAPI expansion registered successfully.");
+        }
 
         // Schedule auto-saver and reminders
         scheduleAutosave();
@@ -132,7 +140,14 @@ public final class PlayConsultantPlugin extends JavaPlugin {
     }
 
     public PlayerData getOrCreatePlayerData(UUID playerId) {
-        return activePlayers.computeIfAbsent(playerId, k -> new PlayerData());
+        return activePlayers.computeIfAbsent(playerId, k -> new PlayerData(playerId));
+    }
+
+    public List<PlayerData> getTopCommenters() {
+        return activePlayers.values().stream() // Get all player data profiles
+                .sorted((p1, p2) -> Integer.compare(p2.getCommentsMade(), p1.getCommentsMade())) // Sort highest to lowest
+                .limit(3) // Grab only the top 3
+                .collect(Collectors.toList());
     }
 
     /**

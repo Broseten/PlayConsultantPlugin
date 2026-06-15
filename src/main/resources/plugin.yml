@@ -13,6 +13,7 @@ commands:
     aliases: [pc]
 
 depend: [DecentHolograms, PlotSquared, FastAsyncWorldEdit]
+softdepend: [PlaceholderAPI]
 
 permissions:
   playconsultant.removecomment:

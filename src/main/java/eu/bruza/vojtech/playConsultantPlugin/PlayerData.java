@@ -3,7 +3,10 @@ package eu.bruza.vojtech.playConsultantPlugin;
 import com.plotsquared.core.plot.PlotId;
 import org.bukkit.Location;
 
+import java.util.UUID;
+
 public class PlayerData {
+    private final UUID uuid;
     private int commentsMade = 0;
     private Location lastCommentLocation = null;
     private boolean isTypingComment = false;
@@ -12,7 +15,15 @@ public class PlayerData {
     private Location lastAdventureLocation = null;
     private Location lastBuildLocation = null;
 
+    public PlayerData(UUID uuid) {
+        this.uuid = uuid;
+    }
+
     // Getters and Setters
+    public UUID getUuid() {
+        return uuid;
+    }
+
     public synchronized int getCommentsMade() {
         return commentsMade;
     }
