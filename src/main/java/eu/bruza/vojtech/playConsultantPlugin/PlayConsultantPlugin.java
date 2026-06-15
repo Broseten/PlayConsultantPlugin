@@ -44,11 +44,9 @@ public final class PlayConsultantPlugin extends JavaPlugin {
         this.playerDataStore.loadAll(activePlayers);
 
         // Register Command
-        Objects.requireNonNull(getCommand("megaphone")).setExecutor(new MegaphoneCommand(this));
-        Objects.requireNonNull(getCommand("removecomment")).setExecutor(new RemoveCommentCommand(this));
-        Objects.requireNonNull(getCommand("reloadconfig")).setExecutor(new ReloadConfigCommand(this));
-        Objects.requireNonNull(getCommand("resetplayerdata")).setExecutor(new ResetPlayerDataCommand(this));
-        Objects.requireNonNull(getCommand("creativekey")).setExecutor(new CreativeKeyCommand(this));
+        PlayConsultantCommand commandHandler = new PlayConsultantCommand(this);
+        Objects.requireNonNull(getCommand("playconsultant")).setExecutor(commandHandler);
+        Objects.requireNonNull(getCommand("playconsultant")).setTabCompleter(commandHandler);
 
         // Register Listeners
         getServer().getPluginManager().registerEvents(new MegaphoneListener(this), this);

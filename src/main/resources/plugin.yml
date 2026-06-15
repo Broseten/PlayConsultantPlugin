@@ -1,4 +1,4 @@
-name: PlayConsultantPlugin
+name: PlayConsultant
 version: '${version}'
 
 main: eu.bruza.vojtech.playConsultantPlugin.PlayConsultantPlugin
@@ -8,16 +8,9 @@ load: POSTWORLD
 authors: [ Vojtech Bruza ]
 
 commands:
-  megaphone:
-    description: Gives the player a megaphone.
-  removecomment:
-    description: Removes the nearest comment marker and its hologram (admin only).
-  reloadconfig:
-    description: Reloads PlayConsultantPlugin configuration from disk.
-  resetplayerdata:
-    description: Resets a specific player's data (admin only).
-  creativekey:
-    description: Gives the player a new Creative Key if they have unlocked it.
+  playconsultant:
+    description: Main command for PlayConsultant. Use subcommands for specific actions.
+    aliases: [pc]
 
 depend: [DecentHolograms, PlotSquared, FastAsyncWorldEdit]
 

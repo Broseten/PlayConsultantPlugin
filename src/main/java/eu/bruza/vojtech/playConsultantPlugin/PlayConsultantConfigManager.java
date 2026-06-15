@@ -14,6 +14,8 @@ public class PlayConsultantConfigManager {
     private static final double DEFAULT_MIN_COMMENT_DISTANCE = 30.0;
     private static final double DEFAULT_REMOVE_COMMENT_SEARCH_RADIUS = 5.0;
     private static final String DEFAULT_SCHEMATIC_NAME = "city_block";
+    private static final String DEFAULT_ADVENTURE_WORLD_NAME = "world";
+    private static final String DEFAULT_BUILD_WORLD_NAME = "build";
 
     private final PlayConsultantPlugin plugin;
 
@@ -22,6 +24,9 @@ public class PlayConsultantConfigManager {
     private volatile double minCommentDistance = DEFAULT_MIN_COMMENT_DISTANCE;
     private volatile double removeCommentSearchRadius = DEFAULT_REMOVE_COMMENT_SEARCH_RADIUS;
     private volatile String schematicName = DEFAULT_SCHEMATIC_NAME;
+    private volatile String adventureWorldName = DEFAULT_ADVENTURE_WORLD_NAME;
+    private volatile String buildWorldName = DEFAULT_BUILD_WORLD_NAME;
+
 
     // Mob spawn configuration
     private static final List<MobSpawnEntry> DEFAULT_MOB_SPAWNS = List.of(
@@ -87,6 +92,8 @@ public class PlayConsultantConfigManager {
                 "commands.removecomment.search-radius"
         );
         schematicName = config.getString("comments.creative-plot.schematic-name", DEFAULT_SCHEMATIC_NAME);
+        adventureWorldName = config.getString("worlds.adventure-world-name", DEFAULT_ADVENTURE_WORLD_NAME);
+        buildWorldName = config.getString("worlds.build-world-name", DEFAULT_BUILD_WORLD_NAME);
 
         // read mob spawn list
         mobSpawns = readMobSpawns(config);
@@ -97,6 +104,8 @@ public class PlayConsultantConfigManager {
                         + ", minCommentDistance=" + minCommentDistance
                         + ", removeCommentSearchRadius=" + removeCommentSearchRadius
                         + ", schematicName=" + schematicName
+                        + ", adventureWorldName=" + adventureWorldName
+                        + ", buildWorldName=" + buildWorldName
         );
         plugin.getLogger().info("Loaded mob spawn list with " + mobSpawns.size() + " entries.");
     }
@@ -166,6 +175,14 @@ public class PlayConsultantConfigManager {
         return list;
     }
 
+    public String getAdventureWorldName() {
+        return adventureWorldName;
+    }
+
+    public String getBuildWorldName() {
+        return buildWorldName;
+    }
+
     public static final class MobSpawnEntry {
         public final EntityType type;
         public final int weight;
@@ -218,4 +235,3 @@ public class PlayConsultantConfigManager {
         return value;
     }
 }
-

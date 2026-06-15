@@ -1,3 +1,9 @@
+worlds:
+  # The name of the main adventure world.
+  adventure-world-name: 'world'
+  # The name of the creative build world.
+  build-world-name: 'creative_plot'
+
 comments:
   # Minimum number of words a player must type before a comment is accepted.
   min-word-count: 8
@@ -129,4 +135,3 @@ commands:
   removecomment:
     # Search radius for finding the nearest comment marker.
     search-radius: 5.0
-

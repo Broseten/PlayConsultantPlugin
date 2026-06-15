@@ -4,25 +4,30 @@ import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.World;
-import org.bukkit.WorldCreator;
 import org.bukkit.entity.Player;
 
 public class WorldTravelManager {
-    private static final String ADVENTURE_WORLD_NAME = "world";
-    private static final String BUILD_WORLD_NAME = "build";
-
     private final PlayConsultantPlugin plugin;
 
     public WorldTravelManager(PlayConsultantPlugin plugin) {
         this.plugin = plugin;
     }
 
+    private String getAdventureWorldName() {
+        return plugin.getConfigManager().getAdventureWorldName();
+    }
+
+    private String getBuildWorldName() {
+        return plugin.getConfigManager().getBuildWorldName();
+    }
+
     public void ensureBuildWorldLoaded() {
-        getOrCreateBuildWorld();
+        // Nothing to do if we don't want to auto-create
+        // PlotSquared or Multiverse should handle world loading
     }
 
     public boolean isBuildWorld(World world) {
-        return world != null && BUILD_WORLD_NAME.equalsIgnoreCase(world.getName());
+        return world != null && getBuildWorldName().equalsIgnoreCase(world.getName());
     }
 
     public boolean toggleWorld(Player player) {
@@ -32,8 +37,9 @@ public class WorldTravelManager {
     }
 
     public boolean travelToAdventureWorld(Player player) {
-        World adventureWorld = Bukkit.getWorld(ADVENTURE_WORLD_NAME);
+        World adventureWorld = Bukkit.getWorld(getAdventureWorldName());
         if (adventureWorld == null) {
+            player.sendMessage("§cThe adventure world (" + getAdventureWorldName() + ") could not be found.");
             return false;
         }
         
@@ -45,7 +51,7 @@ public class WorldTravelManager {
         }
 
         Location targetLocation = playerData.getLastAdventureLocation();
-        if (targetLocation == null || targetLocation.getWorld() == null || !targetLocation.getWorld().getName().equals(ADVENTURE_WORLD_NAME)) {
+        if (targetLocation == null || targetLocation.getWorld() == null || !targetLocation.getWorld().getName().equals(getAdventureWorldName())) {
             targetLocation = adventureWorld.getSpawnLocation();
         }
 
@@ -53,20 +59,21 @@ public class WorldTravelManager {
     }
 
     public boolean travelToBuildWorld(Player player) {
-        World buildWorld = getOrCreateBuildWorld();
+        World buildWorld = Bukkit.getWorld(getBuildWorldName());
         if (buildWorld == null) {
+            player.sendMessage("§cThe build world (" + getBuildWorldName() + ") could not be found.");
             return false;
         }
 
         PlayerData playerData = plugin.getOrCreatePlayerData(player.getUniqueId());
 
-        if (player.getWorld().getName().equals(ADVENTURE_WORLD_NAME)) {
+        if (player.getWorld().getName().equals(getAdventureWorldName())) {
             playerData.setLastAdventureLocation(player.getLocation());
             plugin.persistPlayerData();
         }
 
         Location targetLocation = playerData.getLastBuildLocation();
-        if (targetLocation == null || targetLocation.getWorld() == null || !targetLocation.getWorld().getName().equals(BUILD_WORLD_NAME)) {
+        if (targetLocation == null || targetLocation.getWorld() == null || !targetLocation.getWorld().getName().equals(getBuildWorldName())) {
             targetLocation = buildWorld.getSpawnLocation();
         }
 
@@ -75,15 +82,6 @@ public class WorldTravelManager {
             plugin.getItemManager().giveCreativeKey(player);
         }
         return success;
-    }
-
-    private World getOrCreateBuildWorld() {
-        World buildWorld = Bukkit.getWorld(BUILD_WORLD_NAME);
-        if (buildWorld != null) {
-            return buildWorld;
-        }
-
-        return Bukkit.createWorld(new WorldCreator(BUILD_WORLD_NAME));
     }
 
     private boolean teleport(Player player, Location targetLocation, GameMode gameMode) {

@@ -25,7 +25,7 @@ public class ResetPlayerDataCommand implements CommandExecutor {
         }
 
         if (args.length != 1) {
-            sender.sendMessage(ChatColor.RED + "Usage: /resetplayerdata <player>");
+            sender.sendMessage(ChatColor.RED + "Usage: /" + label + " resetplayerdata <player>");
             return false;
         }
 
