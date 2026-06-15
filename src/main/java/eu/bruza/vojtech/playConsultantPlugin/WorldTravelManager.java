@@ -73,18 +73,20 @@ public class WorldTravelManager {
         }
 
         Location targetLocation = playerData.getLastBuildLocation();
+        boolean success;
         if (targetLocation == null || targetLocation.getWorld() == null || !targetLocation.getWorld().getName().equals(getBuildWorldName())) {
-            targetLocation = buildWorld.getSpawnLocation();
+            success = plugin.getPlotManager().teleportToHome(player);
+        } else {
+            success = teleport(player, targetLocation, GameMode.CREATIVE);
         }
 
-        boolean success = teleport(player, targetLocation, GameMode.CREATIVE);
-        if (success && playerData.hasReceivedCreativeKey()) {
+        if (success && !plugin.getItemManager().hasCreativeKey(player)) {
             plugin.getItemManager().giveCreativeKey(player);
         }
         return success;
     }
 
-    private boolean teleport(Player player, Location targetLocation, GameMode gameMode) {
+    boolean teleport(Player player, Location targetLocation, GameMode gameMode) {
         player.setFallDistance(0.0f);
         boolean teleported = player.teleport(targetLocation);
         if (teleported) {

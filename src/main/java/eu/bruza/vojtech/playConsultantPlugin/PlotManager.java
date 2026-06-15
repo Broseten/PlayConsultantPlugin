@@ -233,28 +233,28 @@ public class PlotManager {
     }
 
 
-    /**
-     * Teleports a player to their assigned plot.
-     * (To be triggered later by enchanted key item).
-     *
-     * @param player The player to teleport
-     * @return true if teleportation was successful, false otherwise
-     */
-    public boolean teleportToAssignedPlot(Player player) {
+    public boolean teleportToHome(Player player) {
         UUID playerId = player.getUniqueId();
         PlayerData playerData = plugin.getPlayerData(playerId);
 
         if (playerData == null || playerData.getAssignedPlotId() == null) {
+            player.sendMessage(Component.text("You don't have a plot assigned.", NamedTextColor.RED));
             return false;
         }
 
         try {
             PlotArea area = PlotSquared.get().getPlotAreaManager().getPlotArea(CREATIVE_PLOT_AREA_NAME, null);
-            if (area == null) return false;
+            if (area == null) {
+                 player.sendMessage(Component.text("The creative plot world isn't available.", NamedTextColor.RED));
+                return false;
+            }
 
             PlotId plotId = playerData.getAssignedPlotId();
             Plot plot = area.getPlot(plotId);
-            if (plot == null) return false;
+            if (plot == null) {
+                player.sendMessage(Component.text("Your assigned plot could not be found.", NamedTextColor.RED));
+                return false;
+            }
 
             // Calculate center of plot for safe teleport
             Location top = plot.getTopAbs();
@@ -262,13 +262,13 @@ public class PlotManager {
 
             if (top != null && bottom != null) {
                 double centerX = (top.getX() + bottom.getX()) / 2.0;
-                double centerZ = bottom.getZ() + 1; // Slightly offset from the edge to avoid border issues
+                double centerZ = bottom.getZ(); // Spawn on the plot border, facing it
 
                 org.bukkit.World bukkitWorld = Bukkit.getWorld(plot.getWorldName());
                 if (bukkitWorld != null) {
                     // Teleport to the center, finding the highest safe block (Y coordinate)
                     int highestY = bukkitWorld.getHighestBlockYAt((int) centerX, (int) centerZ);
-                    org.bukkit.Location tpLoc = new org.bukkit.Location(bukkitWorld, centerX, highestY + 1, centerZ);
+                    org.bukkit.Location tpLoc = new org.bukkit.Location(bukkitWorld, centerX, highestY + 1, centerZ, 0, 0);
 
                     plugin.getServer().getScheduler().runTask(plugin, () -> {
                         player.teleport(tpLoc);
