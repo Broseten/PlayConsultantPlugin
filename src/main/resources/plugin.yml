@@ -14,6 +14,8 @@ commands:
     description: Removes the nearest comment marker and its hologram (admin only).
   reloadconfig:
     description: Reloads PlayConsultantPlugin configuration from disk.
+  resetplayerdata:
+    description: Resets a specific player's data (admin only).
 
 depend: [DecentHolograms, PlotSquared, FastAsyncWorldEdit]
 
@@ -23,4 +25,7 @@ permissions:
     default: op
   playconsultant.reloadconfig:
     description: Allows reloading the plugin configuration
+    default: op
+  playconsultant.resetplayerdata:
+    description: Allows resetting player data
     default: op

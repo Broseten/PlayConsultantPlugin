@@ -47,6 +47,7 @@ public final class PlayConsultantPlugin extends JavaPlugin {
         Objects.requireNonNull(getCommand("megaphone")).setExecutor(new MegaphoneCommand(this));
         Objects.requireNonNull(getCommand("removecomment")).setExecutor(new RemoveCommentCommand(this));
         Objects.requireNonNull(getCommand("reloadconfig")).setExecutor(new ReloadConfigCommand(this));
+        Objects.requireNonNull(getCommand("resetplayerdata")).setExecutor(new ResetPlayerDataCommand(this));
 
         // Register Listeners
         getServer().getPluginManager().registerEvents(new MegaphoneListener(this), this);
@@ -150,5 +151,14 @@ public final class PlayConsultantPlugin extends JavaPlugin {
     public NamespacedKey getHologramNameKey() {
         if (hologramNameKey == null) hologramNameKey = new NamespacedKey(this, "comment_hologram_name");
         return hologramNameKey;
+    }
+    
+    public boolean resetPlayerData(UUID playerUUID) {
+        if (activePlayers.containsKey(playerUUID)) {
+            activePlayers.remove(playerUUID);
+            persistPlayerData();
+            return true;
+        }
+        return false;
     }
 }
