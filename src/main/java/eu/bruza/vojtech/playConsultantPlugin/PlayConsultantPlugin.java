@@ -19,6 +19,7 @@ public final class PlayConsultantPlugin extends JavaPlugin {
     private PlotManager plotManager;
     private CommentCsvLogger commentCsvLogger;
     private PlayConsultantConfigManager configManager;
+    private PlayerDataStore playerDataStore;
     // Keys used to tag comment marker entities and store their hologram name
     private NamespacedKey commentMarkerKey;
     private NamespacedKey hologramNameKey;
@@ -38,6 +39,10 @@ public final class PlayConsultantPlugin extends JavaPlugin {
         String logFileName = "comments_" + timestamp + ".csv";
         this.commentCsvLogger = new CommentCsvLogger(getDataFolder().toPath().resolve(logFileName), getLogger());
 
+        // Load persistent player data (comments count, assigned plot, etc.)
+        this.playerDataStore = new PlayerDataStore(this);
+        this.playerDataStore.loadAll(activePlayers);
+
         // Register Command
         Objects.requireNonNull(getCommand("megaphone")).setExecutor(new MegaphoneCommand(this));
         Objects.requireNonNull(getCommand("removecomment")).setExecutor(new RemoveCommentCommand(this));
@@ -52,6 +57,10 @@ public final class PlayConsultantPlugin extends JavaPlugin {
 
     @Override
     public void onDisable() {
+        if (playerDataStore != null) {
+            // Save synchronously on shutdown so nothing is lost
+            playerDataStore.saveAll(activePlayers);
+        }
         if (commentCsvLogger != null) {
             commentCsvLogger.close();
         }
@@ -81,6 +90,16 @@ public final class PlayConsultantPlugin extends JavaPlugin {
         return activePlayers.computeIfAbsent(playerId, k -> new PlayerData());
     }
 
+    /**
+     * Persists the current state of all player data to disk asynchronously.
+     * Call this after any meaningful mutation (new comment, plot assignment, key grant, ...).
+     */
+    public void persistPlayerData() {
+        if (playerDataStore != null) {
+            playerDataStore.saveAllAsync(activePlayers);
+        }
+    }
+
     public void startTyping(UUID playerId) {
         getOrCreatePlayerData(playerId).setTypingComment(true);
     }
@@ -100,6 +119,7 @@ public final class PlayConsultantPlugin extends JavaPlugin {
     public int incrementAndGetComments(UUID playerId) {
         PlayerData data = getOrCreatePlayerData(playerId);
         data.incrementComments();
+        persistPlayerData();
         return data.getCommentsMade();
     }
 
@@ -110,6 +130,7 @@ public final class PlayConsultantPlugin extends JavaPlugin {
         }
 
         data.setReceivedCreativeKey(true);
+        persistPlayerData();
         return true;
     }
 

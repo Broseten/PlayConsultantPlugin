@@ -233,22 +233,21 @@ public class MegaphoneListener implements Listener {
             PlayerData playerData = plugin.getPlayerData(playerId);
             if (playerData != null) {
                 playerData.setLastCommentLocation(marker.getLocation());
+                plugin.persistPlayerData();
             }
 
             player.sendMessage(Component.text("Comment saved! Total comments: " + commentsMade, NamedTextColor.GREEN));
 
             if (commentsMade >= plugin.getConfigManager().getCreativeUnlockCommentCount() && plugin.markCreativeKeyGranted(playerId)) {
-                // Reward player with a plot in the creative world
+                // Reward a player with a plot in the creative world.
+                // The key is handed out by PlotManager only AFTER the plot is generated,
+                // so the player can't teleport to an unfinished plot.
                 plugin.getPlotManager().rewardPlayerWithCreativePlot(player);
 
-                if (!plugin.getItemManager().hasCreativeKey(player)) {
-                    plugin.getItemManager().giveCreativeKey(player);
-                }
                 player.sendMessage(Component.text(
-                        "You've unlocked the Build World! Right-click your enchanted key to travel.",
+                        "You've unlocked the Build World! Your plot is being prepared...",
                         NamedTextColor.GOLD
                 ));
-
             }
         });
     }

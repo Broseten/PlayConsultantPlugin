@@ -46,6 +46,8 @@ public class PlotManager {
 
         if (playerData != null && playerData.getAssignedPlotId() != null) {
             player.sendMessage(Component.text("You already have an assigned plot!", NamedTextColor.AQUA));
+            // Make sure they have the key so they can travel back
+            ensureKey(player);
             return;
         }
 
@@ -55,6 +57,20 @@ public class PlotManager {
             if (area == null) {
                 plugin.getLogger().warning("Creative plot area '" + CREATIVE_PLOT_AREA_NAME + "' not found in PlotSquared!");
                 player.sendMessage(Component.text("Error: The creative plot world is not configured. Contact staff.", NamedTextColor.RED));
+                return;
+            }
+
+            // Defensive: if PlotSquared already records this player as the owner of a plot
+            // (e.g. local plugin data was wiped), reuse it instead of handing out a new one.
+            Plot existing = findExistingOwnedPlot(area, playerId);
+            if (existing != null) {
+                PlayerData data = plugin.getOrCreatePlayerData(playerId);
+                data.setAssignedPlotId(existing.getId());
+                plugin.persistPlayerData();
+                plugin.getLogger().info("Reusing existing plot " + existing.getId()
+                        + " already owned by " + player.getName());
+                player.sendMessage(Component.text("Your previous plot has been restored.", NamedTextColor.AQUA));
+                ensureKey(player);
                 return;
             }
 
@@ -82,9 +98,11 @@ public class PlotManager {
                 return;
             }
 
-            // Store the plot ID in player data
+            // Store the plot ID in player data and persist immediately so a crash
+            // before the schematic finishes still keeps the assignment.
             PlayerData data = plugin.getOrCreatePlayerData(playerId);
             data.setAssignedPlotId(nextAvailableId);
+            plugin.persistPlayerData();
 
             // 2. Locate and paste the schematic programmatically
             String schematicName = plugin.getConfigManager().getSchematicName();
@@ -95,6 +113,8 @@ public class PlotManager {
             } else {
                 plugin.getLogger().warning("Schematic not found at: " + schematicFile.getAbsolutePath());
                 player.sendMessage(Component.text("§cWarning: The schematic file could not be found. Your plot is ready but empty.", NamedTextColor.YELLOW));
+                // Plot exists, even if empty — still give them the key.
+                grantKeyOnMainThread(player);
             }
 
         } catch (Exception e) {
@@ -102,6 +122,23 @@ public class PlotManager {
             e.printStackTrace();
             player.sendMessage(Component.text("An error occurred while setting up your plot. Contact staff.", NamedTextColor.RED));
         }
+    }
+
+    /**
+     * Looks for a plot in the given area that already belongs to the player.
+     * Used to prevent assigning a second plot if the persistent player-data file was lost.
+     */
+    private Plot findExistingOwnedPlot(PlotArea area, UUID playerId) {
+        try {
+            for (Plot plot : area.getPlots()) {
+                if (plot != null && playerId.equals(plot.getOwnerAbs())) {
+                    return plot;
+                }
+            }
+        } catch (Exception ex) {
+            plugin.getLogger().warning("Could not scan area for previously owned plots: " + ex.getMessage());
+        }
+        return null;
     }
 
     private File getSchematicFile(String schematicName) {
@@ -161,8 +198,8 @@ public class PlotManager {
 
                     plugin.getLogger().info("Schematic pasted successfully for player " + player.getName());
 
-                    // Send the success message to the player
-                    player.sendMessage(Component.text("§aYour Build World plot has been successfully generated! Use your key to teleport there.", NamedTextColor.GREEN));
+                    // Only NOW hand out the key — the plot is ready to be teleported to.
+                    grantKeyOnMainThread(player);
                 }
 
             } catch (Exception e) {
@@ -171,6 +208,30 @@ public class PlotManager {
             }
         });
     }
+
+    /**
+     * Gives the player the creative key (if they don't already have it) and notifies them
+     * that the plot is ready. Always runs on the main thread because it touches the inventory.
+     */
+    private void grantKeyOnMainThread(Player player) {
+        plugin.getServer().getScheduler().runTask(plugin, () -> {
+            if (!player.isOnline()) {
+                return;
+            }
+            ensureKey(player);
+            player.sendMessage(Component.text(
+                    "Your Build World plot has been generated! Right-click your enchanted key to travel.",
+                    NamedTextColor.GREEN
+            ));
+        });
+    }
+
+    private void ensureKey(Player player) {
+        if (!plugin.getItemManager().hasCreativeKey(player)) {
+            plugin.getItemManager().giveCreativeKey(player);
+        }
+    }
+
 
     /**
      * Teleports a player to their assigned plot.

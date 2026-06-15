@@ -29,26 +29,18 @@ public class CreativeKeyListener implements Listener {
             return;
         }
 
+        // Always cancel default item interaction so the key never does anything else.
         event.setCancelled(true);
 
-        // First try to teleport to their assigned plot
+        // The key has only one purpose: teleport the player to their assigned plot.
         if (plugin.getPlotManager().teleportToAssignedPlot(player)) {
             player.sendMessage(Component.text("The key pulls you to your plot!", NamedTextColor.AQUA));
             return;
         }
 
-        // Fallback: toggle between worlds (old behavior) if no plot is assigned yet
-        boolean toggled = plugin.getWorldTravelManager().toggleWorld(player);
-        if (!toggled) {
-            player.sendMessage(Component.text("That key cannot find the destination world right now.", NamedTextColor.RED));
-            return;
-        }
-
-        if (plugin.getWorldTravelManager().isBuildWorld(player.getWorld())) {
-            player.sendMessage(Component.text("The key pulls you into the build world!", NamedTextColor.GOLD));
-        } else {
-            player.sendMessage(Component.text("The key returns you to the adventure world.", NamedTextColor.GOLD));
-        }
+        player.sendMessage(Component.text(
+                "Your key is dormant — your plot is not ready yet.",
+                NamedTextColor.RED
+        ));
     }
 }
-

@@ -15,6 +15,10 @@ public class PlayerData {
         return commentsMade;
     }
 
+    public synchronized void setCommentsMade(int commentsMade) {
+        this.commentsMade = Math.max(0, commentsMade);
+    }
+
     public synchronized void incrementComments() {
         this.commentsMade++;
     }
