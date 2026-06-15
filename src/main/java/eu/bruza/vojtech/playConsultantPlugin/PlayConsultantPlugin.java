@@ -32,7 +32,7 @@ public final class PlayConsultantPlugin extends JavaPlugin {
         this.configManager.load();
 
         this.itemManager = new ItemManager(this);
-        this.worldTravelManager = new WorldTravelManager();
+        this.worldTravelManager = new WorldTravelManager(this);
         this.worldTravelManager.ensureBuildWorldLoaded();
         this.plotManager = new PlotManager(this);
         String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
@@ -48,6 +48,7 @@ public final class PlayConsultantPlugin extends JavaPlugin {
         Objects.requireNonNull(getCommand("removecomment")).setExecutor(new RemoveCommentCommand(this));
         Objects.requireNonNull(getCommand("reloadconfig")).setExecutor(new ReloadConfigCommand(this));
         Objects.requireNonNull(getCommand("resetplayerdata")).setExecutor(new ResetPlayerDataCommand(this));
+        Objects.requireNonNull(getCommand("creativekey")).setExecutor(new CreativeKeyCommand(this));
 
         // Register Listeners
         getServer().getPluginManager().registerEvents(new MegaphoneListener(this), this);

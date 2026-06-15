@@ -16,6 +16,8 @@ commands:
     description: Reloads PlayConsultantPlugin configuration from disk.
   resetplayerdata:
     description: Resets a specific player's data (admin only).
+  creativekey:
+    description: Gives the player a new Creative Key if they have unlocked it.
 
 depend: [DecentHolograms, PlotSquared, FastAsyncWorldEdit]
 

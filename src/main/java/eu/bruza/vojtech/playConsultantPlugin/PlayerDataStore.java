@@ -69,22 +69,10 @@ public class PlayerDataStore {
             data.setReceivedCreativeKey(section.getBoolean("receivedCreativeKey", false));
 
             // Last comment location (only restored if the world is loaded)
-            ConfigurationSection loc = section.getConfigurationSection("lastCommentLocation");
-            if (loc != null) {
-                String worldName = loc.getString("world");
-                World world = worldName != null ? Bukkit.getWorld(worldName) : null;
-                if (world != null) {
-                    Location l = new Location(
-                            world,
-                            loc.getDouble("x"),
-                            loc.getDouble("y"),
-                            loc.getDouble("z"),
-                            (float) loc.getDouble("yaw", 0.0),
-                            (float) loc.getDouble("pitch", 0.0)
-                    );
-                    data.setLastCommentLocation(l);
-                }
-            }
+            data.setLastCommentLocation(loadLocation(section, "lastCommentLocation"));
+            data.setLastAdventureLocation(loadLocation(section, "lastAdventureLocation"));
+            data.setLastBuildLocation(loadLocation(section, "lastBuildLocation"));
+
 
             // Assigned plot id stored as "x;y"
             String plotIdStr = section.getString("assignedPlotId");
@@ -126,15 +114,9 @@ public class PlayerDataStore {
                 cfg.set(base + ".assignedPlotId", pid.getX() + ";" + pid.getY());
             }
 
-            Location loc = data.getLastCommentLocation();
-            if (loc != null && loc.getWorld() != null) {
-                cfg.set(base + ".lastCommentLocation.world", loc.getWorld().getName());
-                cfg.set(base + ".lastCommentLocation.x", loc.getX());
-                cfg.set(base + ".lastCommentLocation.y", loc.getY());
-                cfg.set(base + ".lastCommentLocation.z", loc.getZ());
-                cfg.set(base + ".lastCommentLocation.yaw", loc.getYaw());
-                cfg.set(base + ".lastCommentLocation.pitch", loc.getPitch());
-            }
+            saveLocation(cfg, base + ".lastCommentLocation", data.getLastCommentLocation());
+            saveLocation(cfg, base + ".lastAdventureLocation", data.getLastAdventureLocation());
+            saveLocation(cfg, base + ".lastBuildLocation", data.getLastBuildLocation());
         }
 
         try {
@@ -167,5 +149,35 @@ public class PlayerDataStore {
             logger.warning("Failed to parse assignedPlotId '" + raw + "': " + ex.getMessage());
             return null;
         }
+    }
+
+    private void saveLocation(FileConfiguration cfg, String path, Location loc) {
+        if (loc != null && loc.getWorld() != null) {
+            cfg.set(path + ".world", loc.getWorld().getName());
+            cfg.set(path + ".x", loc.getX());
+            cfg.set(path + ".y", loc.getY());
+            cfg.set(path + ".z", loc.getZ());
+            cfg.set(path + ".yaw", loc.getYaw());
+            cfg.set(path + ".pitch", loc.getPitch());
+        }
+    }
+
+    private Location loadLocation(ConfigurationSection section, String path) {
+        ConfigurationSection locSection = section.getConfigurationSection(path);
+        if (locSection != null) {
+            String worldName = locSection.getString("world");
+            World world = worldName != null ? Bukkit.getWorld(worldName) : null;
+            if (world != null) {
+                return new Location(
+                        world,
+                        locSection.getDouble("x"),
+                        locSection.getDouble("y"),
+                        locSection.getDouble("z"),
+                        (float) locSection.getDouble("yaw", 0.0),
+                        (float) locSection.getDouble("pitch", 0.0)
+                );
+            }
+        }
+        return null;
     }
 }

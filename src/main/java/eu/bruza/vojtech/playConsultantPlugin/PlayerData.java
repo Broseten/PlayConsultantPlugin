@@ -9,6 +9,8 @@ public class PlayerData {
     private boolean isTypingComment = false;
     private boolean receivedCreativeKey = false;
     private PlotId assignedPlotId = null;
+    private Location lastAdventureLocation = null;
+    private Location lastBuildLocation = null;
 
     // Getters and Setters
     public synchronized int getCommentsMade() {
@@ -53,5 +55,21 @@ public class PlayerData {
 
     public synchronized void setAssignedPlotId(PlotId plotId) {
         this.assignedPlotId = plotId;
+    }
+
+    public synchronized Location getLastAdventureLocation() {
+        return lastAdventureLocation == null ? null : lastAdventureLocation.clone();
+    }
+
+    public synchronized void setLastAdventureLocation(Location loc) {
+        this.lastAdventureLocation = loc == null ? null : loc.clone();
+    }
+
+    public synchronized Location getLastBuildLocation() {
+        return lastBuildLocation == null ? null : lastBuildLocation.clone();
+    }
+
+    public synchronized void setLastBuildLocation(Location loc) {
+        this.lastBuildLocation = loc == null ? null : loc.clone();
     }
 }

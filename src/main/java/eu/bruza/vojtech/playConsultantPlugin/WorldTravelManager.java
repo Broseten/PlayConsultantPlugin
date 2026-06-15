@@ -2,6 +2,7 @@ package eu.bruza.vojtech.playConsultantPlugin;
 
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
+import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.WorldCreator;
 import org.bukkit.entity.Player;
@@ -9,6 +10,12 @@ import org.bukkit.entity.Player;
 public class WorldTravelManager {
     private static final String ADVENTURE_WORLD_NAME = "world";
     private static final String BUILD_WORLD_NAME = "build";
+
+    private final PlayConsultantPlugin plugin;
+
+    public WorldTravelManager(PlayConsultantPlugin plugin) {
+        this.plugin = plugin;
+    }
 
     public void ensureBuildWorldLoaded() {
         getOrCreateBuildWorld();
@@ -29,8 +36,20 @@ public class WorldTravelManager {
         if (adventureWorld == null) {
             return false;
         }
+        
+        PlayerData playerData = plugin.getOrCreatePlayerData(player.getUniqueId());
+        
+        if (isBuildWorld(player.getWorld())) {
+            playerData.setLastBuildLocation(player.getLocation());
+            plugin.persistPlayerData();
+        }
 
-        return teleport(player, adventureWorld, GameMode.ADVENTURE);
+        Location targetLocation = playerData.getLastAdventureLocation();
+        if (targetLocation == null || targetLocation.getWorld() == null || !targetLocation.getWorld().getName().equals(ADVENTURE_WORLD_NAME)) {
+            targetLocation = adventureWorld.getSpawnLocation();
+        }
+
+        return teleport(player, targetLocation, GameMode.ADVENTURE);
     }
 
     public boolean travelToBuildWorld(Player player) {
@@ -39,7 +58,23 @@ public class WorldTravelManager {
             return false;
         }
 
-        return teleport(player, buildWorld, GameMode.CREATIVE);
+        PlayerData playerData = plugin.getOrCreatePlayerData(player.getUniqueId());
+
+        if (player.getWorld().getName().equals(ADVENTURE_WORLD_NAME)) {
+            playerData.setLastAdventureLocation(player.getLocation());
+            plugin.persistPlayerData();
+        }
+
+        Location targetLocation = playerData.getLastBuildLocation();
+        if (targetLocation == null || targetLocation.getWorld() == null || !targetLocation.getWorld().getName().equals(BUILD_WORLD_NAME)) {
+            targetLocation = buildWorld.getSpawnLocation();
+        }
+
+        boolean success = teleport(player, targetLocation, GameMode.CREATIVE);
+        if (success && playerData.hasReceivedCreativeKey()) {
+            plugin.getItemManager().giveCreativeKey(player);
+        }
+        return success;
     }
 
     private World getOrCreateBuildWorld() {
@@ -51,14 +86,12 @@ public class WorldTravelManager {
         return Bukkit.createWorld(new WorldCreator(BUILD_WORLD_NAME));
     }
 
-    private boolean teleport(Player player, World world, GameMode gameMode) {
+    private boolean teleport(Player player, Location targetLocation, GameMode gameMode) {
         player.setFallDistance(0.0f);
-        boolean teleported = player.teleport(world.getSpawnLocation());
+        boolean teleported = player.teleport(targetLocation);
         if (teleported) {
             player.setGameMode(gameMode);
         }
         return teleported;
     }
 }
-
-

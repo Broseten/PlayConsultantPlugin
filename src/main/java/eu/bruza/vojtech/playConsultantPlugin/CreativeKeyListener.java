@@ -32,15 +32,16 @@ public class CreativeKeyListener implements Listener {
         // Always cancel default item interaction so the key never does anything else.
         event.setCancelled(true);
 
-        // The key has only one purpose: teleport the player to their assigned plot.
-        if (plugin.getPlotManager().teleportToAssignedPlot(player)) {
-            player.sendMessage(Component.text("The key pulls you to your plot!", NamedTextColor.AQUA));
+        PlayerData playerData = plugin.getOrCreatePlayerData(player.getUniqueId());
+        if (!playerData.hasReceivedCreativeKey()) {
+            player.sendMessage(Component.text("You haven't unlocked the ability to use this key yet.", NamedTextColor.RED));
             return;
         }
 
-        player.sendMessage(Component.text(
-                "Your key is dormant — your plot is not ready yet.",
-                NamedTextColor.RED
-        ));
+        if (plugin.getWorldTravelManager().toggleWorld(player)) {
+            player.sendMessage(Component.text("The key warps you to another world!", NamedTextColor.AQUA));
+        } else {
+            player.sendMessage(Component.text("The key fizzles, but nothing happens.", NamedTextColor.RED));
+        }
     }
 }
