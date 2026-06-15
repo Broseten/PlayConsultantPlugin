@@ -143,10 +143,10 @@ public final class PlayConsultantPlugin extends JavaPlugin {
         return activePlayers.computeIfAbsent(playerId, k -> new PlayerData(playerId));
     }
 
-    public List<PlayerData> getTopCommenters() {
+    public List<PlayerData> getTopCommenters(int count) {
         return activePlayers.values().stream() // Get all player data profiles
                 .sorted((p1, p2) -> Integer.compare(p2.getCommentsMade(), p1.getCommentsMade())) // Sort highest to lowest
-                .limit(3) // Grab only the top 3
+                .limit(count) // Grab only the top 'count'
                 .collect(Collectors.toList());
     }
 

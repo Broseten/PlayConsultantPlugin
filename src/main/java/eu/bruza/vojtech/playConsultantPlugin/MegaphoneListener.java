@@ -66,6 +66,20 @@ public class MegaphoneListener implements Listener {
     }
 
     @EventHandler
+    public void onWorldChange(PlayerChangedWorldEvent event) {
+        Player player = event.getPlayer();
+        PlayerData data = plugin.getPlayerData(player.getUniqueId());
+
+        if (data != null) {
+            int target = plugin.getConfigManager().getCreativeUnlockCommentCount();
+
+            // This will automatically show the bar if they entered the correct world,
+            // or hide it if they left the correct world.
+            updateBossBar(player, data.getCommentsMade(), target);
+        }
+    }
+
+    @EventHandler
     public void onInteract(PlayerInteractEvent event) {
         Player player = event.getPlayer();
         ItemStack item = event.getItem();
@@ -286,9 +300,18 @@ public class MegaphoneListener implements Listener {
         }
     }
 
-    private void updateBossBar(Player player, int commentsMade, int target) {
-        // 1. Fetch Leaderboard Data safely
-        List<PlayerData> top = plugin.getTopCommenters();
+    public void updateBossBar(Player player, int commentsMade, int target) {
+        // 1. WORLD CHECK
+        if (!player.getWorld().getName().equals(plugin.getConfigManager().getAdventureWorldName())) {
+            BossBar existingBar = activeBossBars.remove(player.getUniqueId());
+            if (existingBar != null) {
+                player.hideBossBar(existingBar); // Hide it if they left the world
+            }
+            return; // Stop running the rest of the method
+        }
+
+        // 2. Fetch Leaderboard Data safely
+        List<PlayerData> top = plugin.getTopCommenters(1);
         String top1Name = "Unknown";
         int top1Value = 0;
 
@@ -298,12 +321,12 @@ public class MegaphoneListener implements Listener {
             top1Value = top.getFirst().getCommentsMade();
         }
 
-        // 2. Calculate Progress & Status
+        // 3. Calculate Progress & Status
         boolean hasUnlocked = commentsMade >= target;
         float progress = Math.min(1.0f, (float) commentsMade / target);
         BossBar.Color barColor = hasUnlocked ? BossBar.Color.PURPLE : BossBar.Color.GREEN;
 
-        // 3. Build the dynamic title
+        // 4. Build the dynamic title
         Component bossBarTitle;
         if (hasUnlocked) {
             bossBarTitle = Component.text("Build World Unlocked! | Total: ", NamedTextColor.GOLD)
@@ -317,16 +340,14 @@ public class MegaphoneListener implements Listener {
                     .append(Component.text(top1Name + " (" + top1Value + ")", NamedTextColor.GOLD));
         }
 
-        // 4. Update existing BossBar or create a new one
+        // 5. Update existing BossBar or create a new one
         BossBar existingBar = activeBossBars.get(player.getUniqueId());
 
         if (existingBar != null) {
-            // Just smoothly update the values of the existing bar
             existingBar.name(bossBarTitle);
             existingBar.progress(progress);
             existingBar.color(barColor);
         } else {
-            // First time seeing it? Create it, show it, and save it
             BossBar newBar = BossBar.bossBar(bossBarTitle, progress, barColor, BossBar.Overlay.PROGRESS);
             player.showBossBar(newBar);
             activeBossBars.put(player.getUniqueId(), newBar);
