@@ -212,7 +212,7 @@ public class MegaphoneListener implements Listener {
             }
             boolean hologramCreated = createHologram(
                     hologramName,
-                    marker.getLocation().clone().add(0, 1.5, 0),
+                    marker.getLocation().clone().add(0, marker.getHeight() + 0.25, 0),
                     List.of(
                             "&e\"" + message + "\"",
                             "&7- " + player.getName()

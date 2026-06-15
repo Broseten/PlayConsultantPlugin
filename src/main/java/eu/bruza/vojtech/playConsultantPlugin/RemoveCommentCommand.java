@@ -109,5 +109,3 @@ public class RemoveCommentCommand implements CommandExecutor {
         return true;
     }
 }
-
-
