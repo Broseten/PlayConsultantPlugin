@@ -16,6 +16,7 @@ public class PlayConsultantConfigManager {
     private static final String DEFAULT_SCHEMATIC_NAME = "city_block";
     private static final String DEFAULT_ADVENTURE_WORLD_NAME = "world";
     private static final String DEFAULT_BUILD_WORLD_NAME = "build";
+    private static final int DEFAULT_AUTOSAVE_INTERVAL_SECONDS = 300; // 5 minutes
 
     private final PlayConsultantPlugin plugin;
 
@@ -26,6 +27,7 @@ public class PlayConsultantConfigManager {
     private volatile String schematicName = DEFAULT_SCHEMATIC_NAME;
     private volatile String adventureWorldName = DEFAULT_ADVENTURE_WORLD_NAME;
     private volatile String buildWorldName = DEFAULT_BUILD_WORLD_NAME;
+    private volatile int autosaveIntervalSeconds = DEFAULT_AUTOSAVE_INTERVAL_SECONDS;
 
 
     // Mob spawn configuration
@@ -94,6 +96,7 @@ public class PlayConsultantConfigManager {
         schematicName = config.getString("comments.creative-plot.schematic-name", DEFAULT_SCHEMATIC_NAME);
         adventureWorldName = config.getString("worlds.adventure-world-name", DEFAULT_ADVENTURE_WORLD_NAME);
         buildWorldName = config.getString("worlds.build-world-name", DEFAULT_BUILD_WORLD_NAME);
+        autosaveIntervalSeconds = readPositiveInt(config, "data.autosave-interval-seconds", DEFAULT_AUTOSAVE_INTERVAL_SECONDS, "data.autosave-interval-seconds");
 
         // read mob spawn list
         mobSpawns = readMobSpawns(config);
@@ -106,6 +109,7 @@ public class PlayConsultantConfigManager {
                         + ", schematicName=" + schematicName
                         + ", adventureWorldName=" + adventureWorldName
                         + ", buildWorldName=" + buildWorldName
+                        + ", autosaveIntervalSeconds=" + autosaveIntervalSeconds
         );
         plugin.getLogger().info("Loaded mob spawn list with " + mobSpawns.size() + " entries.");
     }
@@ -181,6 +185,10 @@ public class PlayConsultantConfigManager {
 
     public String getBuildWorldName() {
         return buildWorldName;
+    }
+
+    public int getAutosaveIntervalSeconds() {
+        return autosaveIntervalSeconds;
     }
 
     public static final class MobSpawnEntry {

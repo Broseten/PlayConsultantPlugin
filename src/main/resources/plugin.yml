@@ -24,3 +24,6 @@ permissions:
   playconsultant.resetplayerdata:
     description: Allows resetting player data
     default: op
+  playconsultant.cleanupcomments:
+    description: Allows cleaning up orphaned comments and holograms
+    default: op

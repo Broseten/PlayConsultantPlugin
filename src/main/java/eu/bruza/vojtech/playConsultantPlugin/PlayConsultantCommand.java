@@ -28,6 +28,7 @@ public class PlayConsultantCommand implements CommandExecutor, TabCompleter {
     private final ReloadConfigCommand reloadConfigCommand;
     private final ResetPlayerDataCommand resetPlayerDataCommand;
     private final CreativeKeyCommand creativeKeyCommand;
+    private final CleanupCommentsCommand cleanupCommentsCommand;
 
     public PlayConsultantCommand(PlayConsultantPlugin plugin) {
         this.plugin = plugin;
@@ -36,12 +37,13 @@ public class PlayConsultantCommand implements CommandExecutor, TabCompleter {
         this.reloadConfigCommand = new ReloadConfigCommand(plugin);
         this.resetPlayerDataCommand = new ResetPlayerDataCommand(plugin);
         this.creativeKeyCommand = new CreativeKeyCommand(plugin);
+        this.cleanupCommentsCommand = new CleanupCommentsCommand(plugin);
     }
 
     @Override
     public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
         if (args.length == 0) {
-            sender.sendMessage(Component.text("Usage: /" + label + " <megaphone|removecomment|reload|resetplayerdata|creativekey>", NamedTextColor.RED));
+            sender.sendMessage(Component.text("Usage: /" + label + " <megaphone|removecomment|reload|resetplayerdata|creativekey|cleanupcomments>", NamedTextColor.RED));
             return true;
         }
 
@@ -61,8 +63,10 @@ public class PlayConsultantCommand implements CommandExecutor, TabCompleter {
                 return resetPlayerDataCommand.onCommand(sender, command, label, subArgs);
             case "creativekey":
                 return creativeKeyCommand.onCommand(sender, command, label, subArgs);
+            case "cleanupcomments":
+                return cleanupCommentsCommand.onCommand(sender, command, label, subArgs);
             default:
-                sender.sendMessage(Component.text("Unknown subcommand. Usage: /" + label + " <megaphone|removecomment|reload|resetplayerdata|creativekey>", NamedTextColor.RED));
+                sender.sendMessage(Component.text("Unknown subcommand. Usage: /" + label + " <megaphone|removecomment|reload|resetplayerdata|creativekey|cleanupcomments>", NamedTextColor.RED));
                 return true;
         }
     }
@@ -83,6 +87,9 @@ public class PlayConsultantCommand implements CommandExecutor, TabCompleter {
             }
             if (sender.hasPermission("playconsultant.resetplayerdata") || sender.isOp()) {
                 subCommands.add("resetplayerdata");
+            }
+            if (sender.isOp()) {
+                subCommands.add("cleanupcomments");
             }
             subCommands.add("creativekey");
             

@@ -5,12 +5,16 @@ import io.papermc.paper.event.player.AsyncChatEvent;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.NamespacedKey;
 import org.bukkit.entity.Allay;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Mob;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventPriority;
+import org.bukkit.event.entity.EntityDeathEvent;
+import org.bukkit.loot.Lootable;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -86,6 +90,14 @@ public class MegaphoneListener implements Listener {
         event.setCancelled(true);
     }
 
+    @EventHandler
+    public void onEntityDeath(EntityDeathEvent event) {
+        if (event.getEntity().getPersistentDataContainer().has(plugin.getCommentMarkerKey(), PersistentDataType.BYTE)) {
+            event.setDroppedExp(0);
+            event.getDrops().clear();
+        }
+    }
+
     @EventHandler(priority = EventPriority.HIGHEST)
     public void onChat(AsyncChatEvent event) {
         Player player = event.getPlayer();
@@ -132,6 +144,12 @@ public class MegaphoneListener implements Listener {
             PlayConsultantConfigManager.MobSpawnEntry spawn = plugin.getConfigManager().pickRandomMobSpawn();
             Location markerLocation = commentLocation.clone().add(0, spawn.yOffset, 0);
             Entity marker = player.getWorld().spawnEntity(markerLocation, spawn.type);
+
+            if (marker instanceof Lootable) {
+                Lootable lootable = (Lootable) marker;
+                // Force it to use the vanilla empty loot table
+                lootable.setLootTable(Bukkit.getLootTable(NamespacedKey.minecraft("empty")));
+            }
 
             // disable AI for mobs that support it (most mob types implement org.bukkit.entity.Mob)
             try {

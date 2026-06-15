@@ -3,6 +3,7 @@ package eu.bruza.vojtech.playConsultantPlugin;
 import org.bukkit.Location;
 import org.bukkit.NamespacedKey;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.scheduler.BukkitTask;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -20,6 +21,7 @@ public final class PlayConsultantPlugin extends JavaPlugin {
     private CommentCsvLogger commentCsvLogger;
     private PlayConsultantConfigManager configManager;
     private PlayerDataStore playerDataStore;
+    private BukkitTask autosaveTask;
     // Keys used to tag comment marker entities and store their hologram name
     private NamespacedKey commentMarkerKey;
     private NamespacedKey hologramNameKey;
@@ -52,11 +54,17 @@ public final class PlayConsultantPlugin extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new MegaphoneListener(this), this);
         getServer().getPluginManager().registerEvents(new CreativeKeyListener(this), this);
 
+        // Schedule auto-saver
+        scheduleAutosave();
+
         getLogger().info("PlayConsultant core loaded!");
     }
 
     @Override
     public void onDisable() {
+        if (autosaveTask != null) {
+            autosaveTask.cancel();
+        }
         if (playerDataStore != null) {
             // Save synchronously on shutdown so nothing is lost
             playerDataStore.saveAll(activePlayers);
@@ -64,6 +72,19 @@ public final class PlayConsultantPlugin extends JavaPlugin {
         if (commentCsvLogger != null) {
             commentCsvLogger.close();
         }
+    }
+
+    private void scheduleAutosave() {
+        if (autosaveTask != null) {
+            autosaveTask.cancel();
+        }
+        long intervalTicks = configManager.getAutosaveIntervalSeconds() * 20L;
+        autosaveTask = getServer().getScheduler().runTaskTimerAsynchronously(this, () -> {
+            if (playerDataStore != null) {
+                playerDataStore.saveAll(activePlayers);
+                getLogger().info("Player data auto-saved.");
+            }
+        }, intervalTicks, intervalTicks);
     }
 
     public PlayConsultantConfigManager getConfigManager() {
