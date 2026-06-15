@@ -29,6 +29,7 @@ public class PlayConsultantCommand implements CommandExecutor, TabCompleter {
     private final ResetPlayerDataCommand resetPlayerDataCommand;
     private final CreativeKeyCommand creativeKeyCommand;
     private final CleanupCommentsCommand cleanupCommentsCommand;
+    private final GrantRewardCommand grantRewardCommand;
 
     public PlayConsultantCommand(PlayConsultantPlugin plugin) {
         this.plugin = plugin;
@@ -38,12 +39,13 @@ public class PlayConsultantCommand implements CommandExecutor, TabCompleter {
         this.resetPlayerDataCommand = new ResetPlayerDataCommand(plugin);
         this.creativeKeyCommand = new CreativeKeyCommand(plugin);
         this.cleanupCommentsCommand = new CleanupCommentsCommand(plugin);
+        this.grantRewardCommand = new GrantRewardCommand(plugin);
     }
 
     @Override
     public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
         if (args.length == 0) {
-            sender.sendMessage(Component.text("Usage: /" + label + " <megaphone|removecomment|reload|resetplayerdata|creativekey|cleanupcomments>", NamedTextColor.RED));
+            sender.sendMessage(Component.text("Usage: /" + label + " <megaphone|removecomment|reload|resetplayerdata|creativekey|cleanupcomments|grantreward>", NamedTextColor.RED));
             return true;
         }
 
@@ -65,8 +67,10 @@ public class PlayConsultantCommand implements CommandExecutor, TabCompleter {
                 return creativeKeyCommand.onCommand(sender, command, label, subArgs);
             case "cleanupcomments":
                 return cleanupCommentsCommand.onCommand(sender, command, label, subArgs);
+            case "grantreward":
+                return grantRewardCommand.onCommand(sender, command, label, subArgs);
             default:
-                sender.sendMessage(Component.text("Unknown subcommand. Usage: /" + label + " <megaphone|removecomment|reload|resetplayerdata|creativekey|cleanupcomments>", NamedTextColor.RED));
+                sender.sendMessage(Component.text("Unknown subcommand. Usage: /" + label + " <megaphone|removecomment|reload|resetplayerdata|creativekey|cleanupcomments|grantreward>", NamedTextColor.RED));
                 return true;
         }
     }
@@ -90,14 +94,15 @@ public class PlayConsultantCommand implements CommandExecutor, TabCompleter {
             }
             if (sender.isOp()) {
                 subCommands.add("cleanupcomments");
+                subCommands.add("grantreward");
             }
             subCommands.add("creativekey");
             
             StringUtil.copyPartialMatches(args[0], subCommands, completions);
             Collections.sort(completions);
             return completions;
-        } else if (args.length == 2 && args[0].equalsIgnoreCase("resetplayerdata")) {
-             if (sender.hasPermission("playconsultant.resetplayerdata") || sender.isOp()) {
+        } else if (args.length == 2 && (args[0].equalsIgnoreCase("resetplayerdata") || args[0].equalsIgnoreCase("grantreward"))) {
+             if (sender.isOp() || sender.hasPermission("playconsultant." + args[0].toLowerCase())) {
                  List<String> playerNames = Bukkit.getOnlinePlayers().stream().map(Player::getName).collect(Collectors.toList());
                  StringUtil.copyPartialMatches(args[1], playerNames, completions);
                  Collections.sort(completions);

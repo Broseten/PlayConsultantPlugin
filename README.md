@@ -13,17 +13,22 @@ The plugin creates `config.yml` on first run. The main values currently supporte
 
 ## Commands
 
-- `/megaphone` - gives the player a megaphone
-- `/removecomment` - removes the nearest comment marker and its hologram
-- `/reloadconfig` - reloads the plugin configuration from disk
+All commands are subcommands of `/playconsultant` (alias: `/pc`).
+
+- `/pc megaphone` - Gives the player a megaphone item to start commenting.
+- `/pc removecomment [radius]` - Removes the nearest comment marker and its hologram within an optional radius. (Requires `playconsultant.removecomment` permission or OP)
+- `/pc reload` - Reloads the plugin configuration from disk. (Requires `playconsultant.reloadconfig` permission or OP)
+- `/pc resetplayerdata <player>` - Resets a specific player's data, including comments count and assigned plot. (Requires `playconsultant.resetplayerdata` permission or OP)
+- `/pc creativekey` - Gives the player a creative key to travel between worlds.
+- `/pc cleanupcomments` - Cleans up orphaned comments and holograms. (OP only)
+- `/pc grantreward <player>` - Grants a creative plot to a player and teleports them there, even if they haven't met the comment requirement. (Requires `playconsultant.grantreward` permission or OP)
 
 ## Reloading
 
 After editing `config.yml`, run:
 
 ```text
-/reloadconfig
+/pc reload
 ```
 
 or restart the server.
-

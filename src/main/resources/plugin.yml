@@ -27,3 +27,6 @@ permissions:
   playconsultant.cleanupcomments:
     description: Allows cleaning up orphaned comments and holograms
     default: op
+  playconsultant.grantreward:
+    description: Allows granting a creative plot to a player
+    default: op

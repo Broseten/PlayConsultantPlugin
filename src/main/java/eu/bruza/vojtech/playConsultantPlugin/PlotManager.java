@@ -263,7 +263,7 @@ public class PlotManager {
 
             if (top != null && bottom != null) {
                 double centerX = (top.getX() + bottom.getX()) / 2.0;
-                double centerZ = bottom.getZ(); // Spawn on the plot border, facing it
+                double centerZ = bottom.getZ() + 1; // Spawn on the plot border, facing it
 
                 org.bukkit.World bukkitWorld = Bukkit.getWorld(plot.getWorldName());
                 if (bukkitWorld != null) {
