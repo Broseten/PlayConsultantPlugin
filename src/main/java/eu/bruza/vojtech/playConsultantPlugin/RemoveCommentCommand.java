@@ -1,9 +1,11 @@
 package eu.bruza.vojtech.playConsultantPlugin;
 
 import eu.decentsoftware.holograms.api.DHAPI;
+import eu.decentsoftware.holograms.api.DecentHologramsAPI;
 import eu.decentsoftware.holograms.api.holograms.Hologram;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
+import org.bukkit.Location;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -12,8 +14,25 @@ import org.bukkit.entity.Player;
 import org.bukkit.persistence.PersistentDataType;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
+
 public class RemoveCommentCommand implements CommandExecutor {
     private final PlayConsultantPlugin plugin;
+    
+    private static class ConfirmationData {
+        final long timestamp;
+        final UUID targetEntityId;
+
+        ConfirmationData(long timestamp, UUID targetEntityId) {
+            this.timestamp = timestamp;
+            this.targetEntityId = targetEntityId;
+        }
+    }
+    
+    private final Map<UUID, ConfirmationData> pendingConfirmations = new HashMap<>();
+    private static final long CONFIRMATION_TIME_MS = 10000;
 
     public RemoveCommentCommand(PlayConsultantPlugin plugin) {
         this.plugin = plugin;
@@ -34,76 +53,96 @@ public class RemoveCommentCommand implements CommandExecutor {
         // Run on main thread
         plugin.getServer().getScheduler().runTask(plugin, () -> {
             double searchRadius = plugin.getConfigManager().getRemoveCommentSearchRadius();
-            Entity nearest = null;
-            double best = Double.MAX_VALUE;
+            Entity nearestEntity = null;
+            double bestDistSq = Double.MAX_VALUE;
 
-            for (Entity e : player.getNearbyEntities(searchRadius, searchRadius, searchRadius)) {
-                if (e == null) continue;
-                // skip players
-                if (e instanceof Player) continue;
-                try {
-                    if (e.getPersistentDataContainer().has(plugin.getCommentMarkerKey(), PersistentDataType.BYTE)) {
-                        double dist = e.getLocation().distance(player.getLocation());
-                        if (dist < best) {
-                            best = dist;
-                            nearest = e;
-                        }
+            for (Entity entity : player.getNearbyEntities(searchRadius, searchRadius, searchRadius)) {
+                if (entity instanceof Player) continue;
+                if (entity.getPersistentDataContainer().has(plugin.getCommentMarkerKey(), PersistentDataType.BYTE)) {
+                    // Distance check for entity
+                    double distSq = entity.getLocation().distanceSquared(player.getLocation());
+                    if (distSq < bestDistSq && distSq <= searchRadius * searchRadius) {
+                        bestDistSq = distSq;
+                        nearestEntity = entity;
                     }
-                } catch (Exception ignored) {
                 }
             }
 
-            if (nearest == null) {
-                player.sendMessage(Component.text("No comment marker found within " + (int) searchRadius + " blocks.", NamedTextColor.RED));
+            UUID playerId = player.getUniqueId();
+
+            if (nearestEntity == null) {
+                player.sendMessage(Component.text("No comment marker found within " + searchRadius + " blocks.", NamedTextColor.RED));
+                pendingConfirmations.remove(playerId);
                 return;
             }
 
-            String hologramName = null;
-            try {
-                if (nearest.getPersistentDataContainer().has(plugin.getHologramNameKey(), PersistentDataType.STRING)) {
-                    hologramName = nearest.getPersistentDataContainer().get(plugin.getHologramNameKey(), PersistentDataType.STRING);
-                }
-            } catch (Exception ignored) {
+            ConfirmationData lastRequest = pendingConfirmations.get(playerId);
+            if (lastRequest != null 
+                    && System.currentTimeMillis() - lastRequest.timestamp < CONFIRMATION_TIME_MS
+                    && nearestEntity.getUniqueId().equals(lastRequest.targetEntityId)) {
+                // Confirmed for the exact same nearest entity
+                pendingConfirmations.remove(playerId);
+            } else {
+                // First time or target changed / expired
+                pendingConfirmations.put(playerId, new ConfirmationData(System.currentTimeMillis(), nearestEntity.getUniqueId()));
+                player.sendMessage(Component.text("Are you sure you want to remove the nearest comment? Type the command again within 10 seconds to confirm.", NamedTextColor.GOLD));
+                return;
             }
 
-            // Remember location for fallback checks
-            // Remove entity
-            try {
-                nearest.remove();
-            } catch (Exception ex) {
-                plugin.getLogger().warning("Failed to remove comment entity: " + ex.getMessage());
-            }
+            Location entityLocation = nearestEntity.getLocation();
+            String hologramName = nearestEntity.getPersistentDataContainer().get(plugin.getHologramNameKey(), PersistentDataType.STRING);
 
             boolean hologRemoved = false;
+            // 1. Try to remove by stored name
             if (hologramName != null && !hologramName.isBlank()) {
                 try {
                     Hologram hologram = DHAPI.getHologram(hologramName);
                     if (hologram != null) {
-                        // Try to delete hologram via API
-                        try {
-                            hologram.delete();
-                            hologRemoved = true;
-                        } catch (Throwable t) {
-                            plugin.getLogger().warning("Failed to delete hologram via API: " + t.getMessage());
+                        hologram.delete();
+                        hologRemoved = true;
+                    }
+                } catch (Throwable t) {
+                    plugin.getLogger().warning("Failed to delete hologram '" + hologramName + "' by name: " + t.getMessage());
+                }
+            }
+
+            // 2. If not removed, search for the nearest hologram by location
+            if (!hologRemoved) {
+                final double hologramSearchRadius = 4.0;
+                Hologram nearestHologram = null;
+                double bestHologramDistSq = Double.MAX_VALUE;
+
+                try {
+                    for (Hologram hologram : DecentHologramsAPI.get().getHologramManager().getHolograms()) {
+                        if (!hologram.getLocation().getWorld().equals(entityLocation.getWorld())) {
+                            continue;
+                        }
+                        // Strict distance check for hologram relative to the entity's location
+                        double distSq = hologram.getLocation().distanceSquared(entityLocation);
+                        if (distSq < bestHologramDistSq && distSq <= hologramSearchRadius * hologramSearchRadius) {
+                            bestHologramDistSq = distSq;
+                            nearestHologram = hologram;
                         }
                     }
                 } catch (Throwable t) {
-                    plugin.getLogger().warning("Failed to remove hologram '" + hologramName + "': " + t.getMessage());
+                    plugin.getLogger().warning("Failed to search for nearby holograms: " + t.getMessage());
                 }
-            }
 
-            if (!hologRemoved) {
-                // As a fallback, attempt to delete any hologram with this name prefix (defensive)
-                try {
-                    Hologram hologram = DHAPI.getHologram(hologramName == null ? "" : hologramName);
-                    if (hologram != null) {
-                        try { hologram.delete(); hologRemoved = true; } catch (Throwable ignored) { }
+
+                if (nearestHologram != null) {
+                    try {
+                        nearestHologram.delete();
+                        hologRemoved = true;
+                    } catch (Throwable t) {
+                        plugin.getLogger().warning("Failed to delete nearest hologram: " + t.getMessage());
                     }
-                } catch (Throwable ignored) {
                 }
             }
 
-            player.sendMessage(Component.text("Removed comment." + (hologRemoved ? " Hologram removed." : " Hologram not found."), NamedTextColor.GREEN));
+            // 3. Remove the entity itself
+            nearestEntity.remove();
+
+            player.sendMessage(Component.text("Removed comment." + (hologRemoved ? " Hologram removed." : " Hologram not found or could not be removed."), NamedTextColor.GREEN));
         });
 
         return true;
