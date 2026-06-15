@@ -19,6 +19,7 @@ import com.sk89q.worldedit.session.ClipboardHolder;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.Bukkit;
+import org.bukkit.GameMode;
 import org.bukkit.entity.Player;
 
 import java.io.File;
@@ -268,10 +269,12 @@ public class PlotManager {
                 if (bukkitWorld != null) {
                     // Teleport to the center, finding the highest safe block (Y coordinate)
                     int highestY = bukkitWorld.getHighestBlockYAt((int) centerX, (int) centerZ);
-                    org.bukkit.Location tpLoc = new org.bukkit.Location(bukkitWorld, centerX, highestY + 1, centerZ, 0, 0);
+                    org.bukkit.Location tpLoc = new org.bukkit.Location(bukkitWorld, centerX, highestY + 2, centerZ, 0, 0);
 
                     plugin.getServer().getScheduler().runTask(plugin, () -> {
                         player.teleport(tpLoc);
+                        player.setGameMode(GameMode.CREATIVE);
+                        ensureKey(player);
                         player.sendMessage(Component.text("Welcome to your private plot!", NamedTextColor.AQUA));
                     });
                     return true;

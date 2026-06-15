@@ -55,7 +55,13 @@ public class WorldTravelManager {
             targetLocation = adventureWorld.getSpawnLocation();
         }
 
-        return teleport(player, targetLocation, GameMode.ADVENTURE);
+        boolean teleported = teleport(player, targetLocation, GameMode.ADVENTURE);
+        if (teleported && playerData.getAssignedPlotId() != null) {
+            if (!plugin.getItemManager().hasCreativeKey(player)) {
+                plugin.getItemManager().giveCreativeKey(player);
+            }
+        }
+        return teleported;
     }
 
     public boolean travelToBuildWorld(Player player) {

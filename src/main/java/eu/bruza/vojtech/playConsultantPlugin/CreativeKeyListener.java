@@ -7,6 +7,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.inventory.ItemStack;
 
 public class CreativeKeyListener implements Listener {
@@ -42,6 +43,18 @@ public class CreativeKeyListener implements Listener {
             player.sendMessage(Component.text("The key warps you to another world!", NamedTextColor.AQUA));
         } else {
             player.sendMessage(Component.text("The key fizzles, but nothing happens.", NamedTextColor.RED));
+        }
+    }
+
+    @EventHandler
+    public void onPlayerJoin(PlayerJoinEvent event) {
+        Player player = event.getPlayer();
+        PlayerData playerData = plugin.getOrCreatePlayerData(player.getUniqueId());
+        
+        if (playerData.getAssignedPlotId() != null || playerData.hasReceivedCreativeKey()) {
+            if (!plugin.getItemManager().hasCreativeKey(player)) {
+                plugin.getItemManager().giveCreativeKey(player);
+            }
         }
     }
 }
