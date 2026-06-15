@@ -1,7 +1,11 @@
 package eu.bruza.vojtech.playConsultantPlugin;
 
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.NamespacedKey;
+import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitTask;
 
@@ -22,6 +26,7 @@ public final class PlayConsultantPlugin extends JavaPlugin {
     private PlayConsultantConfigManager configManager;
     private PlayerDataStore playerDataStore;
     private BukkitTask autosaveTask;
+    private BukkitTask reminderTask;
     // Keys used to tag comment marker entities and store their hologram name
     private NamespacedKey commentMarkerKey;
     private NamespacedKey hologramNameKey;
@@ -54,8 +59,9 @@ public final class PlayConsultantPlugin extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new MegaphoneListener(this), this);
         getServer().getPluginManager().registerEvents(new CreativeKeyListener(this), this);
 
-        // Schedule auto-saver
+        // Schedule auto-saver and reminders
         scheduleAutosave();
+        scheduleReminder();
 
         getLogger().info("PlayConsultant core loaded!");
     }
@@ -64,6 +70,9 @@ public final class PlayConsultantPlugin extends JavaPlugin {
     public void onDisable() {
         if (autosaveTask != null) {
             autosaveTask.cancel();
+        }
+        if (reminderTask != null) {
+            reminderTask.cancel();
         }
         if (playerDataStore != null) {
             // Save synchronously on shutdown so nothing is lost
@@ -83,6 +92,21 @@ public final class PlayConsultantPlugin extends JavaPlugin {
             if (playerDataStore != null) {
                 playerDataStore.saveAll(activePlayers);
                 getLogger().info("Player data auto-saved.");
+            }
+        }, intervalTicks, intervalTicks);
+    }
+
+    public void scheduleReminder() {
+        if (reminderTask != null) {
+            reminderTask.cancel();
+        }
+        long intervalTicks = configManager.getReminderIntervalSeconds() * 20L;
+        reminderTask = getServer().getScheduler().runTaskTimer(this, () -> {
+            for (Player player : Bukkit.getOnlinePlayers()) {
+                PlayerData data = getPlayerData(player.getUniqueId());
+                if (data == null || !data.hasReceivedCreativeKey()) {
+                    player.sendMessage(Component.text("Don't forget to share your ideas using the Megaphone item! Need help? Type /pc help.", NamedTextColor.AQUA));
+                }
             }
         }, intervalTicks, intervalTicks);
     }

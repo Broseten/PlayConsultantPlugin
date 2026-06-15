@@ -17,6 +17,7 @@ public class PlayConsultantConfigManager {
     private static final String DEFAULT_ADVENTURE_WORLD_NAME = "world";
     private static final String DEFAULT_BUILD_WORLD_NAME = "build";
     private static final int DEFAULT_AUTOSAVE_INTERVAL_SECONDS = 300; // 5 minutes
+    private static final int DEFAULT_REMINDER_INTERVAL_SECONDS = 180; // 3 minutes
 
     private final PlayConsultantPlugin plugin;
 
@@ -28,6 +29,7 @@ public class PlayConsultantConfigManager {
     private volatile String adventureWorldName = DEFAULT_ADVENTURE_WORLD_NAME;
     private volatile String buildWorldName = DEFAULT_BUILD_WORLD_NAME;
     private volatile int autosaveIntervalSeconds = DEFAULT_AUTOSAVE_INTERVAL_SECONDS;
+    private volatile int reminderIntervalSeconds = DEFAULT_REMINDER_INTERVAL_SECONDS;
 
 
     // Mob spawn configuration
@@ -97,6 +99,7 @@ public class PlayConsultantConfigManager {
         adventureWorldName = config.getString("worlds.adventure-world-name", DEFAULT_ADVENTURE_WORLD_NAME);
         buildWorldName = config.getString("worlds.build-world-name", DEFAULT_BUILD_WORLD_NAME);
         autosaveIntervalSeconds = readPositiveInt(config, "data.autosave-interval-seconds", DEFAULT_AUTOSAVE_INTERVAL_SECONDS, "data.autosave-interval-seconds");
+        reminderIntervalSeconds = readPositiveInt(config, "data.reminder-interval-seconds", DEFAULT_REMINDER_INTERVAL_SECONDS, "data.reminder-interval-seconds");
 
         // read mob spawn list
         mobSpawns = readMobSpawns(config);
@@ -110,6 +113,7 @@ public class PlayConsultantConfigManager {
                         + ", adventureWorldName=" + adventureWorldName
                         + ", buildWorldName=" + buildWorldName
                         + ", autosaveIntervalSeconds=" + autosaveIntervalSeconds
+                        + ", reminderIntervalSeconds=" + reminderIntervalSeconds
         );
         plugin.getLogger().info("Loaded mob spawn list with " + mobSpawns.size() + " entries.");
     }
@@ -189,6 +193,10 @@ public class PlayConsultantConfigManager {
 
     public int getAutosaveIntervalSeconds() {
         return autosaveIntervalSeconds;
+    }
+
+    public int getReminderIntervalSeconds() {
+        return reminderIntervalSeconds;
     }
 
     public static final class MobSpawnEntry {

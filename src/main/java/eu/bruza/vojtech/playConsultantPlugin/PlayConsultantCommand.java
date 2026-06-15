@@ -30,6 +30,7 @@ public class PlayConsultantCommand implements CommandExecutor, TabCompleter {
     private final CreativeKeyCommand creativeKeyCommand;
     private final CleanupCommentsCommand cleanupCommentsCommand;
     private final GrantRewardCommand grantRewardCommand;
+    private final HelpCommand helpCommand;
 
     public PlayConsultantCommand(PlayConsultantPlugin plugin) {
         this.plugin = plugin;
@@ -40,12 +41,13 @@ public class PlayConsultantCommand implements CommandExecutor, TabCompleter {
         this.creativeKeyCommand = new CreativeKeyCommand(plugin);
         this.cleanupCommentsCommand = new CleanupCommentsCommand(plugin);
         this.grantRewardCommand = new GrantRewardCommand(plugin);
+        this.helpCommand = new HelpCommand();
     }
 
     @Override
     public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
         if (args.length == 0) {
-            sender.sendMessage(Component.text("Usage: /" + label + " <megaphone|removecomment|reload|resetplayerdata|creativekey|cleanupcomments|grantreward>", NamedTextColor.RED));
+            sender.sendMessage(Component.text("Usage: /" + label + " <help|megaphone|removecomment|reload|resetplayerdata|creativekey|cleanupcomments|grantreward>", NamedTextColor.RED));
             return true;
         }
 
@@ -55,6 +57,8 @@ public class PlayConsultantCommand implements CommandExecutor, TabCompleter {
         String[] subArgs = Arrays.copyOfRange(args, 1, args.length);
 
         switch (subCommand) {
+            case "help":
+                return helpCommand.onCommand(sender, command, label, subArgs);
             case "megaphone":
                 return megaphoneCommand.onCommand(sender, command, label, subArgs);
             case "removecomment":
@@ -70,7 +74,7 @@ public class PlayConsultantCommand implements CommandExecutor, TabCompleter {
             case "grantreward":
                 return grantRewardCommand.onCommand(sender, command, label, subArgs);
             default:
-                sender.sendMessage(Component.text("Unknown subcommand. Usage: /" + label + " <megaphone|removecomment|reload|resetplayerdata|creativekey|cleanupcomments|grantreward>", NamedTextColor.RED));
+                sender.sendMessage(Component.text("Unknown subcommand. Usage: /" + label + " <help|megaphone|removecomment|reload|resetplayerdata|creativekey|cleanupcomments|grantreward>", NamedTextColor.RED));
                 return true;
         }
     }
@@ -82,6 +86,7 @@ public class PlayConsultantCommand implements CommandExecutor, TabCompleter {
         
         if (args.length == 1) {
             List<String> subCommands = new ArrayList<>();
+            subCommands.add("help");
             subCommands.add("megaphone");
             if (sender.hasPermission("playconsultant.removecomment") || sender.isOp()) {
                 subCommands.add("removecomment");
