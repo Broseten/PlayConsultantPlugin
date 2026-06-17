@@ -6,6 +6,12 @@ import org.bukkit.Location;
 import java.util.UUID;
 
 public class PlayerData {
+    public enum Zones {
+        ADVENTURE,
+        WAREHOUSE,
+        BUILD,
+    }
+
     private final UUID uuid;
     private int commentsMade = 0;
     private Location lastCommentLocation = null;
@@ -18,6 +24,10 @@ public class PlayerData {
     private boolean introCompleted = true;
     // -1 means the navigation is not started yet
     private int navigationTargetID = -1;
+    // They need to also complete this to unlock the build world
+    private boolean warehouseCompleted = false;
+    // Track where the menu sent them last
+    private Zones currentZone = Zones.ADVENTURE; // Can be "ADVENTURE", "WAREHOUSE", or "BUILD"
 
     public PlayerData(UUID uuid) {
         this.uuid = uuid;
@@ -103,5 +113,21 @@ public class PlayerData {
 
     public void setNextTargetId(int targetID) {
         this.navigationTargetID = targetID;
+    }
+
+    public boolean isWarehouseCompleted() {
+        return warehouseCompleted;
+    }
+
+    public void setWarehouseCompleted(boolean value) {
+        this.warehouseCompleted = value;
+    }
+
+    public Zones getCurrentZone() {
+        return currentZone;
+    }
+
+    public void setCurrentZone(Zones zone) {
+        this.currentZone = zone;
     }
 }

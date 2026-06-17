@@ -50,7 +50,6 @@ public final class PlayConsultantPlugin extends JavaPlugin {
         this.checkpointsManager = new CheckpointManager(this);
         this.itemManager = new ItemManager(this);
         this.worldTravelManager = new WorldTravelManager(this);
-        this.worldTravelManager.ensureBuildWorldLoaded();
         this.plotManager = new PlotManager(this);
         String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
         String logFileName = "comments_" + timestamp + ".csv";

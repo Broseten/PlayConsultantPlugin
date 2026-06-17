@@ -16,6 +16,9 @@ depend: [DecentHolograms, PlotSquared, FastAsyncWorldEdit]
 softdepend: [PlaceholderAPI]
 
 permissions:
+  playconsultant.unlockbuild:
+    description: Allows unlocking the build world
+    default: op
   playconsultant.nav.add:
     description: Add new navigation location
     default: op

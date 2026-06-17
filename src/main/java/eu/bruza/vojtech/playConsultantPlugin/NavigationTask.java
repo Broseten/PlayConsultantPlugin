@@ -21,7 +21,12 @@ public class NavigationTask extends BukkitRunnable {
     public void run() {
         for (Player player : Bukkit.getOnlinePlayers()) {
 
-            int currentTargetId = plugin.getPlayerData(player.getUniqueId()).getNextTargetId();
+            PlayerData playerData = plugin.getPlayerData(player.getUniqueId());
+            if (playerData == null) continue;
+            // Do not navigate if they already teleported elsewhere
+            if (playerData.getCurrentZone() != PlayerData.Zones.ADVENTURE) continue;
+
+            int currentTargetId = playerData.getNextTargetId();
 
             Location target = checkpointManager.getCheckpoint(currentTargetId);
 

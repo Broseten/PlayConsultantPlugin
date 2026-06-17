@@ -14,6 +14,12 @@ intro-room:
   # The question players must answer to leave the starting area.
   exit-question: "What is your favorite place to play?"
 
+warehouse:
+  spawn:
+    x: 0
+    y: 64
+    z: 0
+
 comments:
   # Minimum number of words a player must type before a comment is accepted.
   min-word-count: 8

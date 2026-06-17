@@ -22,6 +22,9 @@ public class PlayConsultantConfigManager {
     private static final int DEFAULT_INTRO_ROOM_CENTER_Z = 0;
     private static final int DEFAULT_INTRO_ROOM_SIZE = 50;
     private static final String DEFAULT_INTRO_ROOM_EXIT_QUESTION = "What is your favorite place to play?";
+    private static final int DEFAULT_WAREHOUSE_SPAWN_X = 0;
+    private static final int DEFAULT_WAREHOUSE_SPAWN_Y = 64;
+    private static final int DEFAULT_WAREHOUSE_SPAWN_Z = 0;
 
     private final PlayConsultantPlugin plugin;
 
@@ -38,6 +41,9 @@ public class PlayConsultantConfigManager {
     private volatile int introRoomCenterZ = DEFAULT_INTRO_ROOM_CENTER_Z;
     private volatile int introRoomSize = DEFAULT_INTRO_ROOM_SIZE;
     private volatile String introRoomExitQuestion = DEFAULT_INTRO_ROOM_EXIT_QUESTION;
+    private volatile int warehouseSpawnX = DEFAULT_WAREHOUSE_SPAWN_X;
+    private volatile int warehouseSpawnY = DEFAULT_WAREHOUSE_SPAWN_Y;
+    private volatile int warehouseSpawnZ = DEFAULT_WAREHOUSE_SPAWN_Z;
 
 
     // Mob spawn configuration
@@ -112,6 +118,9 @@ public class PlayConsultantConfigManager {
         introRoomCenterZ = config.getInt("intro-room.center.z", DEFAULT_INTRO_ROOM_CENTER_Z);
         introRoomSize = readPositiveInt(config, "intro-room.size", DEFAULT_INTRO_ROOM_SIZE, "intro-room.size");
         introRoomExitQuestion = config.getString("intro-room.exit-question", DEFAULT_INTRO_ROOM_EXIT_QUESTION);
+        warehouseSpawnX = config.getInt("warehouse.spawn.x", DEFAULT_WAREHOUSE_SPAWN_X);
+        warehouseSpawnY = config.getInt("warehouse.spawn.y", DEFAULT_WAREHOUSE_SPAWN_Y);
+        warehouseSpawnZ = config.getInt("warehouse.spawn.z", DEFAULT_WAREHOUSE_SPAWN_Z);
 
         // read mob spawn list
         mobSpawns = readMobSpawns(config);
@@ -130,6 +139,9 @@ public class PlayConsultantConfigManager {
                         + ", introRoomCenterZ=" + introRoomCenterZ
                         + ", introRoomSize=" + introRoomSize
                         + ", introRoomExitQuestion=" + introRoomExitQuestion
+                        + ", warehouseSpawnX=" + warehouseSpawnX
+                        + ", warehouseSpawnY=" + warehouseSpawnY
+                        + ", warehouseSpawnZ=" + warehouseSpawnZ
         );
         plugin.getLogger().info("Loaded mob spawn list with " + mobSpawns.size() + " entries.");
     }
@@ -229,6 +241,18 @@ public class PlayConsultantConfigManager {
 
     public String getIntroRoomExitQuestion() {
         return introRoomExitQuestion;
+    }
+
+    public int getWarehouseSpawnX() {
+        return warehouseSpawnX;
+    }
+
+    public int getWarehouseSpawnY() {
+        return warehouseSpawnY;
+    }
+
+    public int getWarehouseSpawnZ() {
+        return warehouseSpawnZ;
     }
 
     public static final class MobSpawnEntry {

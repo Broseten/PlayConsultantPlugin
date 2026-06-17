@@ -21,34 +21,14 @@ public class WorldTravelManager {
         return plugin.getConfigManager().getBuildWorldName();
     }
 
-    public void ensureBuildWorldLoaded() {
-        // Nothing to do if we don't want to auto-create
-        // PlotSquared or Multiverse should handle world loading
-    }
-
-    public boolean isBuildWorld(World world) {
-        return world != null && getBuildWorldName().equalsIgnoreCase(world.getName());
-    }
-
-    public boolean toggleWorld(Player player) {
-        return isBuildWorld(player.getWorld())
-                ? travelToAdventureWorld(player)
-                : travelToBuildWorld(player);
-    }
-
     public boolean travelToAdventureWorld(Player player) {
         World adventureWorld = Bukkit.getWorld(getAdventureWorldName());
         if (adventureWorld == null) {
             player.sendMessage("§cThe adventure world (" + getAdventureWorldName() + ") could not be found.");
             return false;
         }
-        
+
         PlayerData playerData = plugin.getOrCreatePlayerData(player.getUniqueId());
-        
-        if (isBuildWorld(player.getWorld())) {
-            playerData.setLastBuildLocation(player.getLocation());
-            plugin.persistPlayerData();
-        }
 
         Location targetLocation = playerData.getLastAdventureLocation();
         if (targetLocation == null || targetLocation.getWorld() == null || !targetLocation.getWorld().getName().equals(getAdventureWorldName())) {
@@ -56,10 +36,36 @@ public class WorldTravelManager {
         }
 
         boolean teleported = teleport(player, targetLocation, GameMode.ADVENTURE);
-        if (teleported && playerData.getAssignedPlotId() != null) {
-            if (!plugin.getItemManager().hasCreativeKey(player)) {
-                plugin.getItemManager().giveCreativeKey(player);
-            }
+        if (teleported) {
+            playerData.setCurrentZone(PlayerData.Zones.ADVENTURE);
+            plugin.persistPlayerData();
+            ensureHasKey(player);
+        }
+        return teleported;
+    }
+
+    public boolean travelToWarehouse(Player player) {
+        World adventureWorld = Bukkit.getWorld(getAdventureWorldName());
+        if (adventureWorld == null) {
+            player.sendMessage("§cThe world containing the warehouse could not be found.");
+            return false;
+        }
+
+        PlayerData playerData = plugin.getOrCreatePlayerData(player.getUniqueId());
+
+        Location targetLocation = new Location(
+                adventureWorld,
+                plugin.getConfigManager().getWarehouseSpawnX(),
+                plugin.getConfigManager().getWarehouseSpawnY(),
+                plugin.getConfigManager().getWarehouseSpawnZ()
+        );
+
+        // Warehouse is an exploration zone, so we keep them in Adventure mode
+        boolean teleported = teleport(player, targetLocation, GameMode.ADVENTURE);
+        if (teleported) {
+            playerData.setCurrentZone(PlayerData.Zones.WAREHOUSE);
+            plugin.persistPlayerData();
+            ensureHasKey(player);
         }
         return teleported;
     }
@@ -73,23 +79,28 @@ public class WorldTravelManager {
 
         PlayerData playerData = plugin.getOrCreatePlayerData(player.getUniqueId());
 
-        if (player.getWorld().getName().equals(getAdventureWorldName())) {
-            playerData.setLastAdventureLocation(player.getLocation());
-            plugin.persistPlayerData();
-        }
-
         Location targetLocation = playerData.getLastBuildLocation();
         boolean success;
+
+        // Use your PlotManager logic if they don't have a saved location
         if (targetLocation == null || targetLocation.getWorld() == null || !targetLocation.getWorld().getName().equals(getBuildWorldName())) {
             success = plugin.getPlotManager().teleportToHome(player);
         } else {
             success = teleport(player, targetLocation, GameMode.CREATIVE);
         }
 
-        if (success && !plugin.getItemManager().hasCreativeKey(player)) {
-            plugin.getItemManager().giveCreativeKey(player);
+        if (success) {
+            playerData.setCurrentZone(PlayerData.Zones.BUILD);
+            plugin.persistPlayerData();
+            ensureHasKey(player);
         }
         return success;
+    }
+
+    private void ensureHasKey(Player player) {
+        if (!plugin.getItemManager().hasCreativeKey(player)) {
+            plugin.getItemManager().giveCreativeKey(player);
+        }
     }
 
     boolean teleport(Player player, Location targetLocation, GameMode gameMode) {
