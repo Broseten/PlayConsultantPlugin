@@ -1,5 +1,6 @@
-package eu.bruza.vojtech.playConsultantPlugin;
+package eu.bruza.vojtech.playConsultantPlugin.commands;
 
+import eu.bruza.vojtech.playConsultantPlugin.PlayConsultantPlugin;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.Bukkit;

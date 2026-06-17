@@ -1,5 +1,8 @@
 package eu.bruza.vojtech.playConsultantPlugin;
 
+import eu.bruza.vojtech.playConsultantPlugin.commands.PlayConsultantCommand;
+import eu.bruza.vojtech.playConsultantPlugin.listeners.CreativeKeyListener;
+import eu.bruza.vojtech.playConsultantPlugin.listeners.MegaphoneListener;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.Bukkit;

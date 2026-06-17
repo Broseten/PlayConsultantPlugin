@@ -1,5 +1,7 @@
-package eu.bruza.vojtech.playConsultantPlugin;
+package eu.bruza.vojtech.playConsultantPlugin.listeners;
 
+import eu.bruza.vojtech.playConsultantPlugin.PlayConsultantPlugin;
+import eu.bruza.vojtech.playConsultantPlugin.PlayerData;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.entity.Player;

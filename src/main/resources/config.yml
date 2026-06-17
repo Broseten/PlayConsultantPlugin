@@ -135,3 +135,9 @@ commands:
   removecomment:
     # Search radius for finding the nearest comment marker.
     search-radius: 5.0
+
+data:
+  # How often the plugin saves player data to disk.
+  autosave-interval-seconds: 300
+  # How often to remind players to leave comments.
+  reminder-interval-seconds: 180

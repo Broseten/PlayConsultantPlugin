@@ -2,6 +2,10 @@
 
 A Paper plugin for collecting player comments with a megaphone item and comment markers.
 
+Dependencies
+- depend: [DecentHolograms, PlotSquared, FastAsyncWorldEdit]
+- softdepend: [PlaceholderAPI]
+
 ## Configuration
 
 The plugin creates `config.yml` on first run. The main values currently supported are:

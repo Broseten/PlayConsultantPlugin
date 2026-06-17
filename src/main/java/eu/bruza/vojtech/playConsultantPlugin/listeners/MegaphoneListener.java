@@ -1,5 +1,8 @@
-package eu.bruza.vojtech.playConsultantPlugin;
+package eu.bruza.vojtech.playConsultantPlugin.listeners;
 
+import eu.bruza.vojtech.playConsultantPlugin.PlayConsultantConfigManager;
+import eu.bruza.vojtech.playConsultantPlugin.PlayConsultantPlugin;
+import eu.bruza.vojtech.playConsultantPlugin.PlayerData;
 import eu.decentsoftware.holograms.api.DHAPI;
 import io.papermc.paper.event.player.AsyncChatEvent;
 import net.kyori.adventure.bossbar.BossBar;

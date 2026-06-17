@@ -1,5 +1,6 @@
-package eu.bruza.vojtech.playConsultantPlugin;
+package eu.bruza.vojtech.playConsultantPlugin.commands;
 
+import eu.bruza.vojtech.playConsultantPlugin.PlayConsultantPlugin;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
