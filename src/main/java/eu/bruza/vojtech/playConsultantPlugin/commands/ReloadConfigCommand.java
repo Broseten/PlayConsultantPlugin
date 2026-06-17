@@ -23,6 +23,7 @@ public class ReloadConfigCommand implements CommandExecutor {
         }
 
         plugin.getConfigManager().reload();
+        plugin.getCheckpointsManager().reload();
         sender.sendMessage(Component.text("PlayConsultant config reloaded.", NamedTextColor.GREEN));
         return true;
     }

@@ -26,10 +26,12 @@ All commands are subcommands of `/playconsultant` (alias: `/pc`).
 - `/pc creativekey` - Gives the player a creative key to travel between worlds.
 - `/pc cleanupcomments` - Cleans up orphaned comments and holograms. (OP only)
 - `/pc grantreward <player>` - Grants a creative plot to a player and teleports them there, even if they haven't met the comment requirement. (Requires `playconsultant.grantreward` permission or OP)
+- `/pc nav add` - Adds a new navigation point for player navigation
+- `/pc nav compass` - Gives player a compass to navigate to next location
 
 ## Reloading
 
-After editing `config.yml`, run:
+After editing `config.yml` or `checkpoints.yml`, run:
 
 ```text
 /pc reload

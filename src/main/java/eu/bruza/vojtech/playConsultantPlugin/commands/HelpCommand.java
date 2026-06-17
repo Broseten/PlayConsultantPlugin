@@ -25,6 +25,7 @@ public class HelpCommand implements CommandExecutor {
         sender.sendMessage(Component.text("To open the chat and start typing, press the 'T' key (by default).", NamedTextColor.GRAY));
         sender.sendMessage(Component.text("Your goal is to leave insightful comments to improve the city.", NamedTextColor.GRAY));
         sender.sendMessage(Component.text("Once you have left enough comments, you will be rewarded!", NamedTextColor.GRAY));
+        sender.sendMessage(Component.text("Follow the compass to navigate to the next key location.", NamedTextColor.GRAY));
         sender.sendMessage(Component.text("-------------------------", NamedTextColor.GOLD, TextDecoration.BOLD));
 
         return true;
