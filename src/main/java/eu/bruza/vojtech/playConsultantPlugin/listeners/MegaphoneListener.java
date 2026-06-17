@@ -9,22 +9,20 @@ import net.kyori.adventure.bossbar.BossBar;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
-import org.bukkit.Bukkit;
-import org.bukkit.Location;
-import org.bukkit.NamespacedKey;
-import org.bukkit.entity.Allay;
-import org.bukkit.entity.Entity;
-import org.bukkit.entity.Mob;
-import org.bukkit.entity.Player;
+import org.bukkit.*;
+import org.bukkit.entity.*;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.player.*;
+import org.bukkit.inventory.meta.FireworkMeta;
 import org.bukkit.loot.Lootable;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.scheduler.BukkitRunnable;
+import org.bukkit.util.Vector;
 import org.jspecify.annotations.NonNull;
 
 import java.util.List;
@@ -283,6 +281,7 @@ public class MegaphoneListener implements Listener {
         int commentsMade = plugin.incrementAndGetComments(playerId);
         int targetComments = plugin.getConfigManager().getCreativeUnlockCommentCount();
 
+
         // 1. Send the instant Action Bar confirmation
         player.sendActionBar(Component.text("Comment saved!", NamedTextColor.GREEN));
 
@@ -292,15 +291,81 @@ public class MegaphoneListener implements Listener {
         // 5. Keep the instant action bar feedback so they know the command worked
         player.sendActionBar(Component.text("Comment saved!", NamedTextColor.GREEN));
 
+        // Play simple reward effect
+        playSimpleRewardEffect(player);
+
         // 3. Grant rewards if applicable
         if (commentsMade >= targetComments && plugin.markCreativeKeyGranted(playerId)) {
             plugin.getPlotManager().rewardPlayerWithCreativePlot(player);
+
+            spawnGrandWinRewardEffect(player);
 
             player.sendMessage(Component.text(
                     "You've unlocked the Build World! Your plot is being prepared...",
                     NamedTextColor.GOLD
             ));
         }
+    }
+
+    public void spawnGrandWinRewardEffect(Player player) {
+        Location playerLoc = player.getLocation();
+
+        // 1. THE SOUND
+        // Plays the grand achievement sound at normal volume and pitch
+        player.playSound(playerLoc, Sound.UI_TOAST_CHALLENGE_COMPLETE, 1.0f, 1.0f);
+
+        // 2. THE SPAWN LOCATIONS
+        // Base location: 2 blocks above the player's feet to avoid spawning inside blocks
+        Location baseLoc = playerLoc.clone().add(0, 2.0, 0);
+
+        // Create a spread of 3 locations: Center, Left-Forward, Right-Back
+        Location[] spawnLocations = {
+                baseLoc,
+                baseLoc.clone().add(1.5, 0, 1.5),
+                baseLoc.clone().add(-1.5, 0, -1.5)
+        };
+
+        // 3. SPAWN THE FIREWORKS
+        for (Location loc : spawnLocations) {
+            Firework firework = player.getWorld().spawn(loc, Firework.class);
+            FireworkMeta meta = firework.getFireworkMeta();
+
+            // Build a massive, colorful explosion
+            FireworkEffect effect = FireworkEffect.builder()
+                    .with(FireworkEffect.Type.BALL_LARGE)
+                    .withColor(Color.AQUA, Color.ORANGE, Color.FUCHSIA)
+                    .withFade(Color.WHITE)
+                    .withTrail()
+                    .withFlicker()
+                    .build();
+
+            meta.addEffect(effect);
+
+            // Power 1 guarantees a ~1 second flight time.
+            // This ensures the server and client sync properly so the explosion renders.
+            meta.setPower(1);
+
+            firework.setFireworkMeta(meta);
+        }
+    }
+
+    public void playSimpleRewardEffect(Player player) {
+        Location playerLoc = player.getLocation();
+
+        // Play a satisfying "ding!" sound
+        // A pitch of 1.5f makes the standard XP orb sound higher and more energetic
+        player.playSound(playerLoc, Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 0.8f, 1.5f);
+
+        // Spawn green "Happy Villager" stars around the player's upper body
+        // Parameters: Particle, Location, Count, Offset X, Offset Y, Offset Z, Speed
+        Location particleLoc = playerLoc.clone().add(0, 1.5, 0);
+        player.getWorld().spawnParticle(
+                Particle.HAPPY_VILLAGER,
+                particleLoc,
+                15,         // Spawn 15 particles
+                0.5, 0.5, 0.5, // Spread them out by 0.5 blocks in all directions
+                0           // 0 speed so they stay contained
+        );
     }
 
     public void updateBossBar(Player player, int commentsMade, int target) {
