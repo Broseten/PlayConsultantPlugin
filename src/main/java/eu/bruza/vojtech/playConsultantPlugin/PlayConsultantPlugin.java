@@ -1,7 +1,9 @@
 package eu.bruza.vojtech.playConsultantPlugin;
 
 import eu.bruza.vojtech.playConsultantPlugin.commands.PlayConsultantCommand;
+import eu.bruza.vojtech.playConsultantPlugin.commands.SetStartCenterCommand;
 import eu.bruza.vojtech.playConsultantPlugin.listeners.CreativeKeyListener;
+import eu.bruza.vojtech.playConsultantPlugin.listeners.IntroRoomListener;
 import eu.bruza.vojtech.playConsultantPlugin.listeners.MegaphoneListener;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
@@ -63,6 +65,7 @@ public final class PlayConsultantPlugin extends JavaPlugin {
         // Register Listeners
         getServer().getPluginManager().registerEvents(new MegaphoneListener(this), this);
         getServer().getPluginManager().registerEvents(new CreativeKeyListener(this), this);
+        getServer().getPluginManager().registerEvents(new IntroRoomListener(this), this);
 
         // Register PlaceholderAPI expansion if present
         if (Bukkit.getPluginManager().getPlugin("PlaceholderAPI") != null) {

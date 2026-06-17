@@ -18,6 +18,10 @@ public class PlayConsultantConfigManager {
     private static final String DEFAULT_BUILD_WORLD_NAME = "build";
     private static final int DEFAULT_AUTOSAVE_INTERVAL_SECONDS = 300; // 5 minutes
     private static final int DEFAULT_REMINDER_INTERVAL_SECONDS = 180; // 3 minutes
+    private static final int DEFAULT_INTRO_ROOM_CENTER_X = 0;
+    private static final int DEFAULT_INTRO_ROOM_CENTER_Z = 0;
+    private static final int DEFAULT_INTRO_ROOM_SIZE = 50;
+    private static final String DEFAULT_INTRO_ROOM_EXIT_QUESTION = "What is your favorite place to play?";
 
     private final PlayConsultantPlugin plugin;
 
@@ -30,6 +34,10 @@ public class PlayConsultantConfigManager {
     private volatile String buildWorldName = DEFAULT_BUILD_WORLD_NAME;
     private volatile int autosaveIntervalSeconds = DEFAULT_AUTOSAVE_INTERVAL_SECONDS;
     private volatile int reminderIntervalSeconds = DEFAULT_REMINDER_INTERVAL_SECONDS;
+    private volatile int introRoomCenterX = DEFAULT_INTRO_ROOM_CENTER_X;
+    private volatile int introRoomCenterZ = DEFAULT_INTRO_ROOM_CENTER_Z;
+    private volatile int introRoomSize = DEFAULT_INTRO_ROOM_SIZE;
+    private volatile String introRoomExitQuestion = DEFAULT_INTRO_ROOM_EXIT_QUESTION;
 
 
     // Mob spawn configuration
@@ -100,6 +108,10 @@ public class PlayConsultantConfigManager {
         buildWorldName = config.getString("worlds.build-world-name", DEFAULT_BUILD_WORLD_NAME);
         autosaveIntervalSeconds = readPositiveInt(config, "data.autosave-interval-seconds", DEFAULT_AUTOSAVE_INTERVAL_SECONDS, "data.autosave-interval-seconds");
         reminderIntervalSeconds = readPositiveInt(config, "data.reminder-interval-seconds", DEFAULT_REMINDER_INTERVAL_SECONDS, "data.reminder-interval-seconds");
+        introRoomCenterX = config.getInt("intro-room.center.x", DEFAULT_INTRO_ROOM_CENTER_X);
+        introRoomCenterZ = config.getInt("intro-room.center.z", DEFAULT_INTRO_ROOM_CENTER_Z);
+        introRoomSize = readPositiveInt(config, "intro-room.size", DEFAULT_INTRO_ROOM_SIZE, "intro-room.size");
+        introRoomExitQuestion = config.getString("intro-room.exit-question", DEFAULT_INTRO_ROOM_EXIT_QUESTION);
 
         // read mob spawn list
         mobSpawns = readMobSpawns(config);
@@ -114,6 +126,10 @@ public class PlayConsultantConfigManager {
                         + ", buildWorldName=" + buildWorldName
                         + ", autosaveIntervalSeconds=" + autosaveIntervalSeconds
                         + ", reminderIntervalSeconds=" + reminderIntervalSeconds
+                        + ", introRoomCenterX=" + introRoomCenterX
+                        + ", introRoomCenterZ=" + introRoomCenterZ
+                        + ", introRoomSize=" + introRoomSize
+                        + ", introRoomExitQuestion=" + introRoomExitQuestion
         );
         plugin.getLogger().info("Loaded mob spawn list with " + mobSpawns.size() + " entries.");
     }
@@ -197,6 +213,22 @@ public class PlayConsultantConfigManager {
 
     public int getReminderIntervalSeconds() {
         return reminderIntervalSeconds;
+    }
+
+    public int getIntroRoomCenterX() {
+        return introRoomCenterX;
+    }
+
+    public int getIntroRoomCenterZ() {
+        return introRoomCenterZ;
+    }
+
+    public int getIntroRoomSize() {
+        return introRoomSize;
+    }
+
+    public String getIntroRoomExitQuestion() {
+        return introRoomExitQuestion;
     }
 
     public static final class MobSpawnEntry {

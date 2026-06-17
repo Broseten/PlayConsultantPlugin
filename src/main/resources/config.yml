@@ -4,6 +4,16 @@ worlds:
   # The name of the creative build world.
   build-world-name: 'creative_plot'
 
+intro-room:
+  # The center of the starting area.
+  center:
+    x: 0
+    z: 0
+  # The size of the starting area (a square).
+  size: 50
+  # The question players must answer to leave the starting area.
+  exit-question: "What is your favorite place to play?"
+
 comments:
   # Minimum number of words a player must type before a comment is accepted.
   min-word-count: 8

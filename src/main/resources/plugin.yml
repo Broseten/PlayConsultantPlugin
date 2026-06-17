@@ -16,6 +16,9 @@ depend: [DecentHolograms, PlotSquared, FastAsyncWorldEdit]
 softdepend: [PlaceholderAPI]
 
 permissions:
+  playconsultant.setstartcenter:
+    description: Allows setting the start center for new players
+    default: op
   playconsultant.removecomment:
     description: Allows removing nearby comments
     default: op

@@ -14,12 +14,23 @@ public class PlayerData {
     private PlotId assignedPlotId = null;
     private Location lastAdventureLocation = null;
     private Location lastBuildLocation = null;
+    // Default to true. We only lock them if they spawn inside the library.
+    private boolean introCompleted = true;
 
     public PlayerData(UUID uuid) {
         this.uuid = uuid;
     }
 
     // Getters and Setters
+
+    public boolean isIntroCompleted() {
+        return introCompleted;
+    }
+
+    public void setIntroCompleted(boolean b) {
+        this.introCompleted = b;
+    }
+
     public UUID getUuid() {
         return uuid;
     }

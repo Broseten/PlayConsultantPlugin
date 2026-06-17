@@ -22,7 +22,7 @@ import java.util.stream.Collectors;
 public class PlayConsultantCommand implements CommandExecutor, TabCompleter {
 
     private final PlayConsultantPlugin plugin;
-    
+
     // Command executors for subcommands
     private final MegaphoneCommand megaphoneCommand;
     private final RemoveCommentCommand removeCommentCommand;
@@ -32,6 +32,7 @@ public class PlayConsultantCommand implements CommandExecutor, TabCompleter {
     private final CleanupCommentsCommand cleanupCommentsCommand;
     private final GrantRewardCommand grantRewardCommand;
     private final HelpCommand helpCommand;
+    private final SetStartCenterCommand setStartCenterCommand;
 
     public PlayConsultantCommand(PlayConsultantPlugin plugin) {
         this.plugin = plugin;
@@ -42,18 +43,19 @@ public class PlayConsultantCommand implements CommandExecutor, TabCompleter {
         this.creativeKeyCommand = new CreativeKeyCommand(plugin);
         this.cleanupCommentsCommand = new CleanupCommentsCommand(plugin);
         this.grantRewardCommand = new GrantRewardCommand(plugin);
+        this.setStartCenterCommand = new SetStartCenterCommand(plugin);
         this.helpCommand = new HelpCommand();
     }
 
     @Override
     public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
         if (args.length == 0) {
-            sender.sendMessage(Component.text("Usage: /" + label + " <help|megaphone|removecomment|reload|resetplayerdata|creativekey|cleanupcomments|grantreward>", NamedTextColor.RED));
+            sender.sendMessage(Component.text("Usage: /" + label + " <help|megaphone|removecomment|reload|resetplayerdata|creativekey|cleanupcomments|grantreward|setstartcenter>", NamedTextColor.RED));
             return true;
         }
 
         String subCommand = args[0].toLowerCase();
-        
+
         // Pass the remaining arguments to the subcommand
         String[] subArgs = Arrays.copyOfRange(args, 1, args.length);
 
@@ -74,6 +76,8 @@ public class PlayConsultantCommand implements CommandExecutor, TabCompleter {
                 return cleanupCommentsCommand.onCommand(sender, command, label, subArgs);
             case "grantreward":
                 return grantRewardCommand.onCommand(sender, command, label, subArgs);
+            case "setstartcenter":
+                return setStartCenterCommand.onCommand(sender, command, label, subArgs);
             default:
                 sender.sendMessage(Component.text("Unknown subcommand. Usage: /" + label + " <help|megaphone|removecomment|reload|resetplayerdata|creativekey|cleanupcomments|grantreward>", NamedTextColor.RED));
                 return true;
@@ -84,7 +88,7 @@ public class PlayConsultantCommand implements CommandExecutor, TabCompleter {
     @Override
     public List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
         List<String> completions = new ArrayList<>();
-        
+
         if (args.length == 1) {
             List<String> subCommands = new ArrayList<>();
             subCommands.add("help");
@@ -98,24 +102,27 @@ public class PlayConsultantCommand implements CommandExecutor, TabCompleter {
             if (sender.hasPermission("playconsultant.resetplayerdata") || sender.isOp()) {
                 subCommands.add("resetplayerdata");
             }
+            if (sender.hasPermission("playconsultant.setstartcenter") || sender.isOp()) {
+                subCommands.add("setstartcenter");
+            }
             if (sender.isOp()) {
                 subCommands.add("cleanupcomments");
                 subCommands.add("grantreward");
             }
             subCommands.add("creativekey");
-            
+
             StringUtil.copyPartialMatches(args[0], subCommands, completions);
             Collections.sort(completions);
             return completions;
         } else if (args.length == 2 && (args[0].equalsIgnoreCase("resetplayerdata") || args[0].equalsIgnoreCase("grantreward"))) {
-             if (sender.isOp() || sender.hasPermission("playconsultant." + args[0].toLowerCase())) {
-                 List<String> playerNames = Bukkit.getOnlinePlayers().stream().map(Player::getName).collect(Collectors.toList());
-                 StringUtil.copyPartialMatches(args[1], playerNames, completions);
-                 Collections.sort(completions);
-                 return completions;
-             }
+            if (sender.isOp() || sender.hasPermission("playconsultant." + args[0].toLowerCase())) {
+                List<String> playerNames = Bukkit.getOnlinePlayers().stream().map(Player::getName).collect(Collectors.toList());
+                StringUtil.copyPartialMatches(args[1], playerNames, completions);
+                Collections.sort(completions);
+                return completions;
+            }
         }
-        
+
         return Collections.emptyList();
     }
 }
