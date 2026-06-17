@@ -38,6 +38,8 @@ public final class PlayConsultantPlugin extends JavaPlugin {
     private NamespacedKey commentMarkerKey;
     private NamespacedKey hologramNameKey;
 
+    private CheckpointManager checkpointsManager;
+
     @Override
     public void onEnable() {
         getLogger().info("by Vojtech Bruza");
@@ -45,6 +47,7 @@ public final class PlayConsultantPlugin extends JavaPlugin {
         this.configManager = new PlayConsultantConfigManager(this);
         this.configManager.load();
 
+        this.checkpointsManager = new CheckpointManager(this);
         this.itemManager = new ItemManager(this);
         this.worldTravelManager = new WorldTravelManager(this);
         this.worldTravelManager.ensureBuildWorldLoaded();
@@ -73,11 +76,17 @@ public final class PlayConsultantPlugin extends JavaPlugin {
             getLogger().info("PlaceholderAPI expansion registered successfully.");
         }
 
-        // Schedule auto-saver and reminders
+        // Schedule repeating tasks
         scheduleAutosave();
         scheduleReminder();
+        scheduleNavigation();
 
         getLogger().info("PlayConsultant core loaded!");
+    }
+
+    private void scheduleNavigation() {
+        // run every 10 ticks (0.5 second)
+        new NavigationTask(checkpointsManager, this).runTaskTimer(this, 0L, 10L);
     }
 
     @Override
@@ -196,6 +205,8 @@ public final class PlayConsultantPlugin extends JavaPlugin {
         }
 
         data.setReceivedCreativeKey(true);
+        Player p = Bukkit.getPlayer(playerId);
+        if (p != null) NavigationUtils.stopNavigation(p, this);
         persistPlayerData();
         return true;
     }
@@ -217,7 +228,7 @@ public final class PlayConsultantPlugin extends JavaPlugin {
         if (hologramNameKey == null) hologramNameKey = new NamespacedKey(this, "comment_hologram_name");
         return hologramNameKey;
     }
-    
+
     public boolean resetPlayerData(UUID playerUUID) {
         if (activePlayers.containsKey(playerUUID)) {
             activePlayers.remove(playerUUID);
@@ -225,5 +236,9 @@ public final class PlayConsultantPlugin extends JavaPlugin {
             return true;
         }
         return false;
+    }
+
+    public CheckpointManager getCheckpointsManager() {
+        return checkpointsManager;
     }
 }

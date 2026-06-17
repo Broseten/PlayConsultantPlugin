@@ -1,8 +1,6 @@
 package eu.bruza.vojtech.playConsultantPlugin.listeners;
 
-import eu.bruza.vojtech.playConsultantPlugin.PlayConsultantConfigManager;
-import eu.bruza.vojtech.playConsultantPlugin.PlayConsultantPlugin;
-import eu.bruza.vojtech.playConsultantPlugin.PlayerData;
+import eu.bruza.vojtech.playConsultantPlugin.*;
 import io.papermc.paper.event.player.AsyncChatEvent;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
@@ -88,6 +86,9 @@ public class IntroRoomListener implements Listener {
 
                 // Let them know they can leave!
                 player.sendMessage(Component.text("Great answer! You may now leave this area and explore the town.", NamedTextColor.GREEN));
+
+                // Start the navigation between the locations
+                NavigationUtils.startNavigation(player, plugin);
             } else {
                 player.sendMessage(Component.text("Please give a slightly longer answer!", NamedTextColor.RED));
             }

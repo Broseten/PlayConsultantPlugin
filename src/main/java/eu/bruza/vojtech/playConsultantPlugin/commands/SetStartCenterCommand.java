@@ -26,7 +26,7 @@ public class SetStartCenterCommand implements CommandExecutor {
         }
 
         Player player = (Player) sender;
-        if (!player.hasPermission("playconsultant.admin")) {
+        if (!player.hasPermission("playconsultant.setstartcenter")) {
             player.sendMessage(Component.text("You don't have permission to use this command.", NamedTextColor.RED));
             return true;
         }

@@ -16,6 +16,9 @@ depend: [DecentHolograms, PlotSquared, FastAsyncWorldEdit]
 softdepend: [PlaceholderAPI]
 
 permissions:
+  playconsultant.nav.add:
+    description: Add new navigation location
+    default: op
   playconsultant.setstartcenter:
     description: Allows setting the start center for new players
     default: op

@@ -33,6 +33,7 @@ public class PlayConsultantCommand implements CommandExecutor, TabCompleter {
     private final GrantRewardCommand grantRewardCommand;
     private final HelpCommand helpCommand;
     private final SetStartCenterCommand setStartCenterCommand;
+    private final NavigationCommand navigationCommand;
 
     public PlayConsultantCommand(PlayConsultantPlugin plugin) {
         this.plugin = plugin;
@@ -44,13 +45,14 @@ public class PlayConsultantCommand implements CommandExecutor, TabCompleter {
         this.cleanupCommentsCommand = new CleanupCommentsCommand(plugin);
         this.grantRewardCommand = new GrantRewardCommand(plugin);
         this.setStartCenterCommand = new SetStartCenterCommand(plugin);
+        this.navigationCommand = new NavigationCommand(plugin);
         this.helpCommand = new HelpCommand();
     }
 
     @Override
     public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
         if (args.length == 0) {
-            sender.sendMessage(Component.text("Usage: /" + label + " <help|megaphone|removecomment|reload|resetplayerdata|creativekey|cleanupcomments|grantreward|setstartcenter>", NamedTextColor.RED));
+            sender.sendMessage(Component.text("Usage: /" + label + " <help|megaphone|removecomment|reload|resetplayerdata|creativekey|cleanupcomments|grantreward|setstartcenter|nav>", NamedTextColor.RED));
             return true;
         }
 
@@ -78,8 +80,10 @@ public class PlayConsultantCommand implements CommandExecutor, TabCompleter {
                 return grantRewardCommand.onCommand(sender, command, label, subArgs);
             case "setstartcenter":
                 return setStartCenterCommand.onCommand(sender, command, label, subArgs);
+            case "nav":
+                return navigationCommand.onCommand(sender, command, label, subArgs);
             default:
-                sender.sendMessage(Component.text("Unknown subcommand. Usage: /" + label + " <help|megaphone|removecomment|reload|resetplayerdata|creativekey|cleanupcomments|grantreward>", NamedTextColor.RED));
+                sender.sendMessage(Component.text("Unknown subcommand. Usage: /" + label + " <help|megaphone|removecomment|reload|resetplayerdata|creativekey|cleanupcomments|grantreward|setstartcenter|nav>", NamedTextColor.RED));
                 return true;
         }
     }
@@ -93,6 +97,8 @@ public class PlayConsultantCommand implements CommandExecutor, TabCompleter {
             List<String> subCommands = new ArrayList<>();
             subCommands.add("help");
             subCommands.add("megaphone");
+            subCommands.add("nav");
+
             if (sender.hasPermission("playconsultant.removecomment") || sender.isOp()) {
                 subCommands.add("removecomment");
             }
@@ -114,13 +120,31 @@ public class PlayConsultantCommand implements CommandExecutor, TabCompleter {
             StringUtil.copyPartialMatches(args[0], subCommands, completions);
             Collections.sort(completions);
             return completions;
-        } else if (args.length == 2 && (args[0].equalsIgnoreCase("resetplayerdata") || args[0].equalsIgnoreCase("grantreward"))) {
-            if (sender.isOp() || sender.hasPermission("playconsultant." + args[0].toLowerCase())) {
-                List<String> playerNames = Bukkit.getOnlinePlayers().stream().map(Player::getName).collect(Collectors.toList());
-                StringUtil.copyPartialMatches(args[1], playerNames, completions);
-                Collections.sort(completions);
-                return completions;
+
+        } else if (args.length == 2) {
+
+            // Tab completion for resetplayerdata and grantreward
+            if (args[0].equalsIgnoreCase("resetplayerdata") || args[0].equalsIgnoreCase("grantreward")) {
+                if (sender.isOp() || sender.hasPermission("playconsultant." + args[0].toLowerCase())) {
+                    List<String> playerNames = Bukkit.getOnlinePlayers().stream().map(Player::getName).collect(Collectors.toList());
+                    StringUtil.copyPartialMatches(args[1], playerNames, completions);
+                }
             }
+            // Tab completion for nav
+            else if (args[0].equalsIgnoreCase("nav")) {
+                List<String> navArgs = new ArrayList<>();
+                navArgs.add("compass");
+
+                // Only show "add" if they have the permission
+                if (sender.hasPermission("playconsultant.nav.add") || sender.isOp()) {
+                    navArgs.add("add");
+                }
+
+                StringUtil.copyPartialMatches(args[1], navArgs, completions);
+            }
+
+            Collections.sort(completions);
+            return completions;
         }
 
         return Collections.emptyList();

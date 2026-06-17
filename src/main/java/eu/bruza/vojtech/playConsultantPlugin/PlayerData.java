@@ -16,6 +16,8 @@ public class PlayerData {
     private Location lastBuildLocation = null;
     // Default to true. We only lock them if they spawn inside the library.
     private boolean introCompleted = true;
+    // -1 means the navigation is not started yet
+    private int navigationTargetID = -1;
 
     public PlayerData(UUID uuid) {
         this.uuid = uuid;
@@ -93,5 +95,13 @@ public class PlayerData {
 
     public synchronized void setLastBuildLocation(Location loc) {
         this.lastBuildLocation = loc == null ? null : loc.clone();
+    }
+
+    public int getNextTargetId() {
+        return navigationTargetID;
+    }
+
+    public void setNextTargetId(int targetID) {
+        this.navigationTargetID = targetID;
     }
 }
