@@ -1,6 +1,7 @@
 package eu.bruza.vojtech.playConsultantPlugin.commands;
 
 import eu.bruza.vojtech.playConsultantPlugin.PlayConsultantPlugin;
+import eu.bruza.vojtech.playConsultantPlugin.PlayerData;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.Bukkit;
@@ -36,16 +37,14 @@ public class GrantRewardCommand implements CommandExecutor {
             return true;
         }
 
-        // Mark that the player has been granted the key to prevent re-rewarding
-        // and to align with the natural progression flow.
-        if (!plugin.markCreativeKeyGranted(targetPlayer.getUniqueId())) {
-            sender.sendMessage(Component.text(targetPlayer.getName() + " has already been granted the creative reward.", NamedTextColor.YELLOW));
-            // Still, ensure they have a plot and a key if something went wrong.
-            plugin.getPlotManager().rewardPlayerWithCreativePlot(targetPlayer);
-            return true;
-        }
+        PlayerData playerData = plugin.getOrCreatePlayerData(targetPlayer.getUniqueId());
 
-        // This will create the plot, paste the schematic, and give the key upon completion.
+        // Mark progression as complete to allow access via the key menu
+        playerData.setWarehouseCompleted(true);
+
+        // This handles both new rewards and re-running for players who already have a plot.
+        // It will create the plot, paste the schematic, and give the key upon completion.
+        // It does NOT teleport the player.
         plugin.getPlotManager().rewardPlayerWithCreativePlot(targetPlayer);
 
         // Notify the target player

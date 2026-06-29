@@ -34,14 +34,11 @@ public class PlotManager {
         this.plugin = plugin;
     }
 
-    /**
-     * Rewards a player with a plot in the creative_plot world.
-     * Assigns them an unused plot, claims it, loads the schematic, and stores the plot ID.
-     * Does NOT teleport the player.
-     *
-     * @param player The player to reward
-     */
     public void rewardPlayerWithCreativePlot(Player player) {
+        rewardPlayerWithCreativePlot(player, null);
+    }
+
+    private void rewardPlayerWithCreativePlot(Player player, Runnable onComplete) {
         UUID playerId = player.getUniqueId();
         PlayerData playerData = plugin.getPlayerData(playerId);
 
@@ -49,6 +46,9 @@ public class PlotManager {
             player.sendMessage(Component.text("You already have an assigned plot!", NamedTextColor.AQUA));
             // Make sure they have the key so they can travel back
             ensureKey(player);
+            if (onComplete != null) {
+                onComplete.run();
+            }
             return;
         }
 
@@ -72,6 +72,9 @@ public class PlotManager {
                         + " already owned by " + player.getName());
                 player.sendMessage(Component.text("Your previous plot has been restored.", NamedTextColor.AQUA));
                 ensureKey(player);
+                if (onComplete != null) {
+                    onComplete.run();
+                }
                 return;
             }
 
@@ -110,12 +113,12 @@ public class PlotManager {
             File schematicFile = getSchematicFile(schematicName);
 
             if (schematicFile.exists()) {
-                pasteSchematic(plot, schematicFile, player);
+                pasteSchematic(plot, schematicFile, player, onComplete);
             } else {
                 plugin.getLogger().warning("Schematic not found at: " + schematicFile.getAbsolutePath());
                 player.sendMessage(Component.text("§cWarning: The schematic file could not be found. Your plot is ready but empty.", NamedTextColor.YELLOW));
                 // Plot exists, even if empty — still give them the key.
-                grantKeyOnMainThread(player);
+                grantKeyOnMainThread(player, onComplete);
             }
 
         } catch (Exception e) {
@@ -161,7 +164,7 @@ public class PlotManager {
     /**
      * Attempts to paste a schematic into a plot using FastAsyncWorldEdit natively.
      */
-    private void pasteSchematic(Plot plot, File schematicFile, Player player) {
+    private void pasteSchematic(Plot plot, File schematicFile, Player player, Runnable onComplete) {
         plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
             try {
                 ClipboardFormat format = ClipboardFormats.findByFile(schematicFile);
@@ -200,7 +203,7 @@ public class PlotManager {
                     plugin.getLogger().info("Schematic pasted successfully for player " + player.getName());
 
                     // Only NOW hand out the key — the plot is ready to be teleported to.
-                    grantKeyOnMainThread(player);
+                    grantKeyOnMainThread(player, onComplete);
                 }
 
             } catch (Exception e) {
@@ -214,7 +217,7 @@ public class PlotManager {
      * Gives the player the creative key (if they don't already have it) and notifies them
      * that the plot is ready. Always runs on the main thread because it touches the inventory.
      */
-    private void grantKeyOnMainThread(Player player) {
+    private void grantKeyOnMainThread(Player player, Runnable onComplete) {
         plugin.getServer().getScheduler().runTask(plugin, () -> {
             if (!player.isOnline()) {
                 return;
@@ -224,6 +227,9 @@ public class PlotManager {
                     "Your Build World plot has been generated! Right-click your enchanted key to travel.",
                     NamedTextColor.GREEN
             ));
+            if (onComplete != null) {
+                onComplete.run();
+            }
         });
     }
 
