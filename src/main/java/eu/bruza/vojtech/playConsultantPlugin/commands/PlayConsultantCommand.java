@@ -35,6 +35,7 @@ public class PlayConsultantCommand implements CommandExecutor, TabCompleter {
     private final SetStartCenterCommand setStartCenterCommand;
     private final NavigationCommand navigationCommand;
     private final UnlockBuildWorldCommand unlockBuildCommand;
+    private final ClearAllCommentsCommand clearAllCommentsCommand;
 
     public PlayConsultantCommand(PlayConsultantPlugin plugin) {
         this.plugin = plugin;
@@ -44,6 +45,7 @@ public class PlayConsultantCommand implements CommandExecutor, TabCompleter {
         this.resetPlayerDataCommand = new ResetPlayerDataCommand(plugin);
         this.creativeKeyCommand = new CreativeKeyCommand(plugin);
         this.cleanupCommentsCommand = new CleanupCommentsCommand(plugin);
+        this.clearAllCommentsCommand = new ClearAllCommentsCommand(plugin);
         this.grantRewardCommand = new GrantRewardCommand(plugin);
         this.setStartCenterCommand = new SetStartCenterCommand(plugin);
         this.navigationCommand = new NavigationCommand(plugin);
@@ -54,7 +56,7 @@ public class PlayConsultantCommand implements CommandExecutor, TabCompleter {
     @Override
     public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
         if (args.length == 0) {
-            sender.sendMessage(Component.text("Usage: /" + label + " <help | megaphone | removecomment | reload | resetplayerdata | creativekey | cleanupcomments | grantreward | setstartcenter | nav | build>", NamedTextColor.RED));
+            sender.sendMessage(Component.text("Usage: /" + label + " <help | megaphone | removecomment | reload | resetplayerdata | creativekey | cleanupcomments | clearallcomments | grantreward | setstartcenter | nav | build>", NamedTextColor.RED));
             return true;
         }
 
@@ -78,6 +80,8 @@ public class PlayConsultantCommand implements CommandExecutor, TabCompleter {
                 return creativeKeyCommand.onCommand(sender, command, label, subArgs);
             case "cleanupcomments":
                 return cleanupCommentsCommand.onCommand(sender, command, label, subArgs);
+            case "clearallcomments":
+                return clearAllCommentsCommand.onCommand(sender, command, label, subArgs);
             case "grantreward":
                 return grantRewardCommand.onCommand(sender, command, label, subArgs);
             case "setstartcenter":
@@ -87,7 +91,7 @@ public class PlayConsultantCommand implements CommandExecutor, TabCompleter {
             case "unlockbuild":
                 return unlockBuildCommand.onCommand(sender, command, label, subArgs);
             default:
-                sender.sendMessage(Component.text("Unknown subcommand. Usage: /" + label + " <help | megaphone | removecomment | reload | resetplayerdata | creativekey | cleanupcomments | grantreward | setstartcenter | nav | unlockbuild>", NamedTextColor.RED));
+                sender.sendMessage(Component.text("Unknown subcommand. Usage: /" + label + " <help | megaphone | removecomment | reload | resetplayerdata | creativekey | cleanupcomments | clearallcomments | grantreward | setstartcenter | nav | unlockbuild>", NamedTextColor.RED));
                 return true;
         }
     }
@@ -120,6 +124,7 @@ public class PlayConsultantCommand implements CommandExecutor, TabCompleter {
             }
             if (sender.isOp()) {
                 subCommands.add("cleanupcomments");
+                subCommands.add("clearallcomments");
                 subCommands.add("grantreward");
             }
             subCommands.add("creativekey");
